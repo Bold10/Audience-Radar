@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Coins, FileText, Gauge, Hash, Megaphone, Play, ShieldCheck, Video } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { InterestBars } from "@/components/Interest";
+import { HeroRadarCard as RadarPreview } from "@/components/HeroRadarCard";
 import { RoadmapColumns } from "@/components/RoadmapColumns";
 import { RadarBackdrop } from "@/components/RadarBackdrop";
 import { money, useConfig } from "@/lib/api";
@@ -12,26 +12,6 @@ const Section = ({ id, eyebrow, title, children }) => (
     <h2 className="mt-3 max-w-3xl font-display text-3xl font-bold sm:text-4xl">{title}</h2>
     <div className="mt-10">{children}</div>
   </section>
-);
-
-const PREVIEW = [["X", "High", "500 posts"], ["Telegram", "Medium", "40 channels"], ["YouTube", "Medium", "120 videos"], ["Reddit", "Low", "300 posts"]];
-
-const RadarPreview = () => (
-  <div className="card-ar fade-up p-6 md:p-8" style={{ animationDelay: "150ms" }} data-testid="hero-radar-preview">
-    <div className="flex items-center justify-between">
-      <span className="text-sm font-medium">a portfolio tracker for crypto traders</span>
-      <span className="rounded-full border border-ink px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">Demo data</span>
-    </div>
-    <ul className="mt-6 divide-y divide-line">
-      {PREVIEW.map(([n, l, s]) => (
-        <li key={n} className="flex items-center justify-between py-4">
-          <span className="font-display text-xl font-semibold">{n}</span>
-          <span className="flex items-center gap-2"><InterestBars label={l} /><span className="w-16 font-semibold">{l}</span></span>
-          <span className="hidden text-sm text-soft sm:block">{s} · Estimate</span>
-        </li>
-      ))}
-    </ul>
-  </div>
 );
 
 const Hero = () => (
