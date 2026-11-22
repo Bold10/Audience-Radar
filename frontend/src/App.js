@@ -1,56 +1,43 @@
-import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-import { HOME } from "@/constants/testIds";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    // The marker attribute below lets the platform probe detect the stock splash — remove it with this page
-    <div data-emergent-splash>
-      <header className="App-header">
-        <a
-          data-testid={HOME.emergentLink}
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "@/components/ui/sonner";
+import { Layout } from "@/components/Layout";
+import { FlowProvider } from "@/lib/flow";
+import Landing from "@/pages/Landing";
+import Roadmap from "@/pages/Roadmap";
+import Describe from "@/pages/Describe";
+import AudiencePage from "@/pages/Audience";
+import Sources from "@/pages/Sources";
+import Pay from "@/pages/Pay";
+import Results from "@/pages/Results";
+import Kit from "@/pages/Kit";
+import History from "@/pages/History";
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <FlowProvider>
+        <div className="App">
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Landing />} />
+                <Route path="/roadmap" element={<Roadmap />} />
+                <Route path="/app" element={<Describe />} />
+                <Route path="/app/audience" element={<AudiencePage />} />
+                <Route path="/app/sources" element={<Sources />} />
+                <Route path="/app/pay/:runId" element={<Pay />} />
+                <Route path="/app/runs/:runId" element={<Results />} />
+                <Route path="/app/runs/:runId/kit" element={<Kit />} />
+                <Route path="/history" element={<History />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+          <Toaster position="bottom-center" />
+        </div>
+      </FlowProvider>
+    </ThemeProvider>
   );
 }
 

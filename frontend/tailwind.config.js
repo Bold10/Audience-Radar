@@ -14,7 +14,21 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
       },
+      fontFamily: {
+        display: ['"Space Grotesk"', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+      },
       colors: {
+        ground: 'var(--ground)',
+        surface: 'var(--surface)',
+        surface2: 'var(--surface-2)',
+        ink: 'var(--text)',
+        soft: 'var(--muted-text)',
+        line: 'var(--line)',
+        brand: 'var(--accent)',
+        btn: 'var(--btn)',
+        btnink: 'var(--btn-text)',
+        hl: 'var(--highlight-bg)',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {

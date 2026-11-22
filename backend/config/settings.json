@@ -1,0 +1,24 @@
+{
+  "pricing": {
+    "x_price_per_post": 0.005,
+    "currency": "USD",
+    "crypto_assets": ["USDC", "USDT", "ETH"]
+  },
+  "interest": {
+    "thresholds": { "high": 66, "medium": 33 },
+    "volume_window_days": 14,
+    "weights": { "volume": 0.5, "engagement": 0.5 },
+    "targets": {
+      "x": { "volume": 350, "engagement": 75 },
+      "telegram": { "volume": 40, "engagement": 80 },
+      "reddit": { "volume": 300, "engagement": 40 },
+      "youtube": { "volume": 90, "engagement": 160 }
+    }
+  },
+  "keywords": {
+    "top_fraction": 0.2,
+    "count": 8,
+    "min_top_count": 3,
+    "candidate_pool": 16
+  }
+}
