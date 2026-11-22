@@ -13,7 +13,7 @@ const lightAppearance = {
 const darkAppearance = {
   theme: dark,
   captcha: { theme: "dark" },
-  variables: { ...base, colorPrimary: "#FF6A4A", colorPrimaryForeground: "#151311", colorBackground: "#211E1B",
+  variables: { ...base, colorPrimary: "#FF6A4A", colorPrimaryForeground: "#151311", colorTextOnPrimaryBackground: "#151311", colorBackground: "#211E1B",
     colorForeground: "#F4EFE6", colorInput: "#2B2723", colorInputForeground: "#F4EFE6", colorBorder: "#3B352F" },
 };
 

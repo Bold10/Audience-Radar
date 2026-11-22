@@ -63,7 +63,14 @@ async def optional_account(request: Request) -> Optional[dict]:
     auth = request.headers.get("authorization", "")
     if not auth.lower().startswith("bearer "):
         return None
-    acct = await account_for(verify_session_token(auth[7:])["sub"])
+    try:
+        claims = verify_session_token(auth[7:])
+    except HTTPException:
+        return None  # stale token on a public endpoint: treat as signed out
+    try:
+        acct = await account_for(claims["sub"])
+    except requests.RequestException:
+        raise HTTPException(503, "Sign-in service is unavailable, try again shortly")
     if not acct["gmail"]:
         raise HTTPException(403, GMAIL_ONLY)
     return acct

@@ -44,7 +44,7 @@ function App() {
             </Routes>
             </ClerkAuthProvider>
           </BrowserRouter>
-          <Toaster position="bottom-center" />
+          <Toaster position="top-center" />
         </div>
       </FlowProvider>
     </ThemeProvider>

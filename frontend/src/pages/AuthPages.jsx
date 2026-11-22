@@ -26,13 +26,13 @@ const Shell = ({ title, children, testid }) => (
 );
 
 export const SignInPage = () => (
-  <Shell title="Sign in to Audience Radar" testid="sign-in-page">
+  <Shell title="Welcome back" testid="sign-in-page">
     <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" withSignUp />
   </Shell>
 );
 
 export const SignUpPage = () => (
-  <Shell title="Create your account" testid="sign-up-page">
+  <Shell title="Keep your runs on any device" testid="sign-up-page">
     <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
   </Shell>
 );

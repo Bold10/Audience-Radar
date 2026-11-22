@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 4 features: share links, Clerk Gmail-only auth, hot keywords block, editable SVG. Backend: 26/26 pytest pass. That is 7 new tests in test_iter4_share_auth.py plus the 19 regression tests. Share owner checks work: browser client_id for runs without an account, account token for account runs, 403 for non-owners, 402 for unpaid runs, 404 for unknown runs. Sharing again returns the same token. /api/shared/{token} leaves out payment, client_id, user_id, id, share_token, cost and status, and includes the kit. After stop sharing the token gives 404, and sharing again gives a new token while the old one stays 404. /api/me: 401 with no token or a bad token; the gmail user gets gmail true; the non-gmail user gets gmail false with a message, and /runs?scope=mine, /me/claim and POST /runs all return 403 for them. Claim moves browser runs to the account (claimed=1). After that the browser-only My runs is empty and the account My runs has the run. The old browser client_id is no longer the owner of the account run (403). Runs created while signed in go to the account. Frontend (signed out): the owner sees Share on Results and Kit. Share opens the panel with the /s/<token> URL and copies it to the clipboard. Copy link shows a toast. A new context (empty storage) shows shared-run-page with the read-only bar, demo badge, rows with Estimate + sample, keywords, the full kit and the footer CTA. It has no Share button, no 0x/USDC or pay/refine/regenerate, and meta robots is 'noindex, nofollow'. On the shared page the SVG download is launch-card-editable.svg with 9 <text> elements and ids headline/subline/keyword-chips/logo-mark. The full kit zip has x-post, telegram, script, hot-keywords, launch-card.png and launch-card-editable.svg. Stop sharing brings the Share button back and the old link shows shared-not-found. Non-owners see no Share button on Results or Kit. The creator-mode shared page at 390px shows the ranking with Estimate/sample and no horizontal scroll. Kit: the keywords card sits right under the X post card. 8 chips; clicking one copies that keyword and shows 'Copied', which reverts after about 1.6s. Copy all copies the keywords joined by spaces. Signed in via sign-in ticket: header-account-menu shows (sign-in button hidden), the toast '1 earlier run from this browser added to your account' appears, History says 'account's runs' and lists the claimed run, and the UserButton menu shows the email + Sign out. The owner keeps the Share button after the localStorage client_id changes. Non-gmail ticket: the user is signed out (window.Clerk.user null) and redirected to /sign-up?gmail=required with gmail-required-alert and an error toast. Sign-in/up pages are readable in light and dark at 390px and desktop and show gmail-only-note. The mobile menu has mobile-nav-sign-in-link and mobile-nav-sign-up-link. The landing hero still renders.",
+  "backend_issues": {"critical": [], "minor": [
+    {"endpoint": "optional_account / account_for", "issue": "When a user is not cached in db.users, a Clerk API failure (network or 5xx) raises from requests and becomes an unhandled 500 on every authed endpoint, including anonymous-friendly ones like POST /runs. Wrap it and return 503. The gmail flag is cached forever, so a change to the user's primary email is never re-checked."},
+    {"endpoint": "optional_account", "issue": "An expired or invalid Bearer token on public endpoints (POST /runs, GET /runs, GET /runs/{id}/share) returns 401 instead of treating the caller as signed out. The frontend only sends tokens from Clerk so it is fine in practice, but a stale token mid-flow would block run creation."},
+    {"endpoint": "POST /api/runs/{id}/pay, POST /api/runs/{id}/kit", "issue": "Neither checks ownership (pre-existing). Anyone with a run id can pay for or generate the kit for someone else's run."}
+  ]},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Results share panel", "issues": ["Clicking Share shows the 'Share link copied' toast, and Copy link then shows a second 'Link copied' toast. Both sonner toasts are bottom-center and partly cover the share panel (share-url-input) on a 1080px-tall desktop."]},
+      {"screen": "Dark mode auth pages", "issues": ["The Clerk Continue button is white text on light coral in dark mode, which looks below 4.5:1 contrast. Consider darker text or a deeper accent for the button in dark mode."]},
+      {"screen": "/sign-up?gmail=required", "issues": ["A refused user who used sign-in lands on 'Create your account'. That works, but a sign-in-context message might read better."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter4_share_auth.py", "/app/backend/tests/test_audience_radar.py", "/app/backend/tests/test_iter2_live_adapters.py", "/app/test_reports/pytest/pytest_results.xml", "/app/test_reports/pytest/pytest_iter4.xml"],
+  "action_items": [
+    "Optional: handle Clerk API errors in account_for (503 instead of 500)",
+    "Optional: treat invalid Bearer tokens as signed out on public endpoints, or have the frontend retry without a token",
+    "Optional: move toasts off the share panel (top-right or offset), and skip the duplicate toast",
+    "Optional: check dark-mode Clerk primary button contrast"
+  ],
+  "critical_code_review_comments": [
+    "ShareControl: the owner check runs async after mount, so the Share button appears a moment after page load (by design, no flash for non-owners)",
+    "KeywordCopy uses key={k}, so duplicate keywords would trigger a React key warning (unlikely since the keywords are deduped)",
+    "Claim takes any client_id from the body: anyone who knows a browser's client_id could claim its runs. The client_id is random and per browser, so the risk is low",
+    "read_shared assumes run['kit'] exists. That is guaranteed because create_share calls launch_kit, but a manual DB edit or a failed kit generation would cause a 500"
+  ],
+  "updated_files": ["/app/backend/tests/test_iter4_share_auth.py", "/app/backend/tests/mk_ui_run.py", "/app/backend/tests/mk_ticket.py"],
+  "success_rate": {"backend": "100% (26/26)", "frontend": "100% (minor design notes only)"},
+  "test_credentials": "From /app/memory/test_credentials.md: radar.tester+clerk_test@gmail.com and radar.other+clerk_test@example.com (Clerk dev). Used session tokens and sign-in tickets via the Clerk Backend API.",
+  "seed_data_creation": "3 TEST_ UI runs (one launch, one creator, one claimed into the gmail account) were deleted by id. Pytest modules delete their own runs by id. A db.users cache row exists for both test Clerk users (created by /api/me).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest with -n 0 for test_iter4_share_auth.py (it calls the Clerk API for session tokens). Helpers: tests/mk_ui_run.py <client_id> [launch|creator] creates a paid run; tests/mk_ticket.py <email> prints a one-time sign-in ticket (open /sign-in?__clerk_ticket=...). Set localStorage ar_client_id before visiting a run to act as its owner. Use page.context.browser.new_context() for a separate browser."
+}

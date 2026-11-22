@@ -23,6 +23,13 @@
 - Hero radar card: rotating audience word (crypto traders → writers → developers → researchers → enthusiasts, 3s, slide-up/fade) with pulsing ellipsis in accent; rows change per audience (crypto = real demo values, others illustrative); pause on hover/focus; reduced-motion static; stable aria-label. Tested iteration_2: 100%.
 - Live keys (X, Reddit, YouTube) skipped by user: all sources on sample data.
 
+## Iteration 4 (2026-06)
+- Share links: owner-only (account or same browser), paid runs; /s/:token read-only page (results + kit, no payment/owner info, noindex); stop sharing kills the link; re-share = new token. Kit is written at share time.
+- Optional sign-up: Emergent-managed Clerk, email one-time code only, Gmail-only enforced server-side (403 for non-Gmail) and client sign-out. Browser runs claimed on first sign-in; History My runs = account runs when signed in.
+- Launch kit: Hot keywords block under X post (per-chip copy + Copy all). Editable SVG card (text layers + logo layer), included in zip.
+- Tested iteration_3: backend 26/26, frontend 100%.
+
 ## Backlog
 - P1: Live adapters (official APIs), real crypto payment, threshold tuning on real data.
+- P1: Ownership check on pay/kit endpoints; Continue with Google; share link view stats/expiry.
 - P2: Prepaid credits, Bitcoin, more sources, scheduling; dedupe creator ranking per platform; demo video asset.
