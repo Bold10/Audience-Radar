@@ -1,0 +1,26 @@
+{
+  "summary": "Iteration 2+3 test. Backend: 19/19 pytest pass (test_audience_radar.py + test_iter2_live_adapters.py); /api/config data_mode 'auto', demo_mode true, all sources live false, X sample_size 500. Frontend: Hero card rotates every ~3s in the right order: crypto traders -> writers -> developers -> researchers -> enthusiasts -> crypto traders. The note shows 'Demo results' for crypto traders and 'Illustrative example' for the others. Crypto traders rows match the spec (X High 500 posts, Telegram Medium 40 channels, YouTube Medium 120 videos, Reddit Low 300 posts). Every row shows 'Estimate' and the demo badge is always shown. Hovering the card pauses rotation and leaving resumes it. Focusing the card pauses it and blurring resumes it. aria-label stays the same. With reduced motion the word stays 'crypto traders' and ring/sweep/blip/ellipsis animation is none. Card height stays at 429.3px on desktop and 503.9px at 390px across all 5 audiences. No horizontal scroll at 390px. Backdrop: pointer-events none, z -10, 4 rings pulsing 9s at stroke-opacity 0.1, 12s sweep, 7 blips, no blip overlaps text, buttons or card. hero-start-run-button goes to /app. Button hover: translateY(-2px), halo and offset box-shadow, ::before fill sweep scaleX(1), icon scale/rotate. Nav link hover: surface pill bg and accent ::after underline scaleX 0->1. Dark mode looks right. Regression launch flow end to end: all source-tag-* show 'Demo data', cost-total $2.50, mock pay with tx hash, results with demo-data-badge and all result-tag-* 'Demo data' (X High 500, YouTube Medium 120, Telegram Medium 40, Reddit Low 300), launch kit generated with card image.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "HeroRadarCard", "issue": "Card has tabIndex=0 and class outline-none, so it shows no focus indicator when tabbed to. Keyboard users can't see that focus (and the pause) landed on it. Add a focus-visible ring.", "selector": "[data-testid=hero-radar-preview]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Hero card transition", "issues": ["During the 0.5s swap, the outgoing word (no ellipsis) and the row-in fade (opacity 0) can briefly show the new note ('Illustrative example') next to the old word 'crypto traders' with empty rows. Seen in one screenshot. Cosmetic only; you could cross-fade the note too."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_audience_radar.py", "/app/backend/tests/test_iter2_live_adapters.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": ["Optional: add focus-visible ring on hero-radar-preview", "Optional: animate hero-example-note together with the word swap"],
+  "critical_code_review_comments": [
+    "Earlier minor items from iteration_1 still apply (pay/kit concurrency race, clipboard try/catch)",
+    "HeroRadarCard: the interval restarts on every hover-leave, so the hold after resume is always a full 3s (fine)"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100% (only minor a11y/cosmetic notes)"},
+  "test_credentials": "None - no auth",
+  "seed_data_creation": "One TEST_ launch run created through the UI (id c83708b4-...) and deleted by id. Backend tests clean up their own runs.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run pytest with -n 0. Audience options are data-testid audience-option-{i}. Hero rotation is 3s; timing measured about 3.0s per word."
+}

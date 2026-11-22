@@ -19,6 +19,10 @@
 - Live adapters on official APIs: X v2 recent search (100 posts, $0.50), Reddit app-only OAuth search, YouTube Data API v3. Telegram stays sample. DATA_MODE=auto: live where keys set, else sample per source, with per-source Live/Demo data tags. Live fetch errors fall back to sample. Live volume = posts/day; live_targets in settings.json are placeholders to tune.
 - Keys needed: X_BEARER_TOKEN, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, YOUTUBE_API_KEY.
 
+## Iteration 3 (2026-06)
+- Hero radar card: rotating audience word (crypto traders → writers → developers → researchers → enthusiasts, 3s, slide-up/fade) with pulsing ellipsis in accent; rows change per audience (crypto = real demo values, others illustrative); pause on hover/focus; reduced-motion static; stable aria-label. Tested iteration_2: 100%.
+- Live keys (X, Reddit, YouTube) skipped by user: all sources on sample data.
+
 ## Backlog
 - P1: Live adapters (official APIs), real crypto payment, threshold tuning on real data.
 - P2: Prepaid credits, Bitcoin, more sources, scheduling; dedupe creator ranking per platform; demo video asset.

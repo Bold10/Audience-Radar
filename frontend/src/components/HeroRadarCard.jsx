@@ -54,14 +54,14 @@ export const HeroRadarCard = () => {
 
   const a = AUDIENCES[idx];
   return (
-    <div className="card-ar fade-up p-6 outline-none md:p-8" style={{ animationDelay: "150ms" }} tabIndex={0}
+    <div className="card-ar fade-up p-6 outline-none focus-visible:ring-2 focus-visible:ring-btn focus-visible:ring-offset-2 focus-visible:ring-offset-ground md:p-8" style={{ animationDelay: "150ms" }} tabIndex={0}
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}
       aria-label="Example radar card, demo data: interest estimates on X, Telegram, YouTube and Reddit for a portfolio tracker aimed at different audiences."
       data-testid="hero-radar-preview">
       <div className="flex items-center justify-between gap-3">
         <span className="rounded-full border border-ink px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider" data-testid="hero-demo-badge">Demo data</span>
-        <span className="text-xs text-soft" aria-hidden data-testid="hero-example-note">{a.demo ? "Demo results" : "Illustrative example"}</span>
+        <span key={`note-${idx}`} className={`text-xs text-soft ${prev !== null ? "row-in" : ""}`} aria-hidden data-testid="hero-example-note">{a.demo ? "Demo results" : "Illustrative example"}</span>
       </div>
       <p className="mt-5 text-sm font-medium" aria-hidden>a portfolio tracker for</p>
       <div className="mt-1 font-display text-2xl font-bold text-brand md:text-[28px]"><RotatingWord idx={idx} prev={prev} /></div>
