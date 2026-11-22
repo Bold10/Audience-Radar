@@ -1,4 +1,4 @@
-import { Database } from "lucide-react";
+import { Database, Radio } from "lucide-react";
 import { unitLabel } from "@/lib/api";
 
 const LEVEL = { High: 3, Medium: 2, Low: 1 };
@@ -34,8 +34,18 @@ export const EstimateMeta = ({ sample, unit, testid }) => (
   </span>
 );
 
-export const DemoBadge = () => (
+export const DemoBadge = ({ demo = true }) => demo ? (
   <span className="inline-flex items-center gap-1.5 rounded-full border border-ink px-3 py-1 text-xs font-semibold uppercase tracking-wider" data-testid="demo-data-badge">
     <Database size={13} /> Demo data
+  </span>
+) : (
+  <span className="inline-flex items-center gap-1.5 rounded-full border border-ink px-3 py-1 text-xs font-semibold uppercase tracking-wider" data-testid="live-data-badge">
+    <Radio size={13} /> Live data
+  </span>
+);
+
+export const SourceTag = ({ live, testid }) => (
+  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${live ? "border-ink" : "border-line text-soft"}`} data-testid={testid}>
+    {live ? "Live" : "Demo data"}
   </span>
 );

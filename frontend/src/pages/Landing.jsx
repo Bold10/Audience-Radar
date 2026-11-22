@@ -3,6 +3,7 @@ import { ArrowRight, Coins, FileText, Gauge, Hash, Megaphone, Play, ShieldCheck,
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { InterestBars } from "@/components/Interest";
 import { RoadmapColumns } from "@/components/RoadmapColumns";
+import { RadarBackdrop } from "@/components/RadarBackdrop";
 import { money, useConfig } from "@/lib/api";
 
 const Section = ({ id, eyebrow, title, children }) => (
@@ -34,7 +35,9 @@ const RadarPreview = () => (
 );
 
 const Hero = () => (
-  <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-14 md:px-8 md:pt-24 lg:grid-cols-[1.15fr_1fr]" data-testid="landing-hero">
+  <section className="relative isolate pb-16 md:pb-20" data-testid="landing-hero">
+    <RadarBackdrop />
+  <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-14 md:px-8 md:pt-24 lg:grid-cols-[1.15fr_1fr]">
     <div className="fade-up">
       <p className="eyebrow">Audience Radar</p>
       <h1 className="mt-4 font-display text-4xl font-bold leading-[1.02] sm:text-5xl lg:text-6xl">
@@ -47,11 +50,12 @@ const Hero = () => (
       </div>
     </div>
     <RadarPreview />
+  </div>
   </section>
 );
 
 const VideoSlot = () => (
-  <section className="mx-auto max-w-7xl px-5 pt-20 md:px-8" data-testid="landing-video-slot">
+  <section className="mx-auto max-w-7xl px-5 pt-4 md:px-8" data-testid="landing-video-slot">
     <div className="flex aspect-video w-full flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-ink bg-surface">
       <span className="flex h-16 w-16 items-center justify-center rounded-full bg-btn text-btnink"><Play size={26} /></span>
       <p className="font-display text-xl font-semibold">Demo video</p>

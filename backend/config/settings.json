@@ -13,7 +13,18 @@
       "telegram": { "volume": 40, "engagement": 80 },
       "reddit": { "volume": 300, "engagement": 40 },
       "youtube": { "volume": 90, "engagement": 160 }
+    },
+    "live_targets": {
+      "x": { "volume": 200, "engagement": 20 },
+      "telegram": { "volume": 20, "engagement": 500 },
+      "reddit": { "volume": 30, "engagement": 30 },
+      "youtube": { "volume": 10, "engagement": 200 }
     }
+  },
+  "live": {
+    "x_max_posts": 100,
+    "reddit_max_posts": 100,
+    "youtube_max_videos": 50
   },
   "keywords": {
     "top_fraction": 0.2,

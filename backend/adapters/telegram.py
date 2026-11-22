@@ -10,4 +10,4 @@ class TelegramDemoAdapter(_TelegramMeta, DemoAdapter):
 
 
 class TelegramLiveAdapter(_TelegramMeta, LiveAdapter):
-    """Official Telegram API (public channels) goes here."""
+    """Official Telegram API (MTProto) not connected yet; stays on sample data (no credentials_env)."""

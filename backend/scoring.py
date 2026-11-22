@@ -2,9 +2,18 @@ import re
 from collections import Counter
 from statistics import median
 
-STOPWORDS = {"the", "and", "for", "with", "this", "that", "you", "your", "are", "was", "new", "today", "week",
-             "check", "update", "buy", "sell", "just", "from", "have", "has", "but", "not", "all", "out"}
+STOPWORDS = {
+    "the", "and", "for", "with", "this", "that", "you", "your", "are", "was", "new", "today", "week", "check",
+    "update", "buy", "sell", "just", "from", "have", "has", "but", "not", "all", "out", "about", "what", "when",
+    "where", "which", "who", "why", "how", "can", "will", "would", "could", "should", "been", "being", "were",
+    "they", "them", "their", "there", "here", "then", "than", "into", "over", "under", "more", "most", "some",
+    "any", "very", "also", "only", "our", "ours", "its", "it's", "his", "her", "she", "him", "one", "two", "get",
+    "got", "like", "make", "made", "does", "did", "doing", "dont", "don", "isn", "aren", "now", "use", "using",
+    "via", "amp", "https", "http", "www", "com", "these", "those", "other", "such", "each", "every", "much",
+    "many", "own", "same", "too", "off", "again", "once", "yes", "let", "lets", "see", "way", "really",
+}
 TOKEN = re.compile(r"#?[a-z0-9]+")
+URL = re.compile(r"https?://\S+")
 
 
 def label_for(score: float, thresholds: dict) -> str:
@@ -15,12 +24,18 @@ def label_for(score: float, thresholds: dict) -> str:
     return "Low"
 
 
-def interest(source_id: str, items: list[dict], cfg: dict) -> dict:
-    target = cfg["targets"][source_id]
+def interest(source_id: str, items: list[dict], cfg: dict, live: bool = False) -> dict:
+    """Demo: volume = posts inside the window. Live: volume = posts per day across the sample's time span."""
+    target = cfg["live_targets" if live else "targets"][source_id]
     w = cfg["weights"]
     recent = sum(1 for i in items if i["days_ago"] < cfg["volume_window_days"])
+    if live:
+        span = max((i["days_ago"] for i in items), default=0) + 1
+        volume = len(items) / span
+    else:
+        volume = recent
     med = median(i["engagement"] for i in items) if items else 0
-    vol_score = min(100.0, 100.0 * recent / target["volume"])
+    vol_score = min(100.0, 100.0 * volume / target["volume"])
     eng_score = min(100.0, 100.0 * med / target["engagement"])
     score = round(w["volume"] * vol_score + w["engagement"] * eng_score, 1)
     return {"score": score, "label": label_for(score, cfg["thresholds"]), "sample_size": len(items),
@@ -28,7 +43,7 @@ def interest(source_id: str, items: list[dict], cfg: dict) -> dict:
 
 
 def _tokens(text: str) -> set[str]:
-    return {t for t in TOKEN.findall(text.lower()) if len(t) >= 3 and t not in STOPWORDS}
+    return {t for t in TOKEN.findall(URL.sub(" ", text.lower())) if len(t) >= 3 and t not in STOPWORDS}
 
 
 def keyword_candidates(items: list[dict], cfg: dict) -> list[str]:

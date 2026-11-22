@@ -13,6 +13,12 @@
 - Gemini (gemini-3-flash-preview) via Emergent LLM key; sample fallbacks on failure.
 - Payment is MOCKED. Data sources are DEMO sample files.
 
+## Iteration 2 (2026-06)
+- Livelier hover on buttons (fill sweep, lift, halo, icon nudge, press) and header nav (pill + accent underline).
+- Hero animated radar backdrop (inline SVG + CSS: pulsing rings 9s, 12s sweep with wedge, 7 blips in padding strips; reduced-motion off).
+- Live adapters on official APIs: X v2 recent search (100 posts, $0.50), Reddit app-only OAuth search, YouTube Data API v3. Telegram stays sample. DATA_MODE=auto: live where keys set, else sample per source, with per-source Live/Demo data tags. Live fetch errors fall back to sample. Live volume = posts/day; live_targets in settings.json are placeholders to tune.
+- Keys needed: X_BEARER_TOKEN, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, YOUTUBE_API_KEY.
+
 ## Backlog
 - P1: Live adapters (official APIs), real crypto payment, threshold tuning on real data.
 - P2: Prepaid credits, Bitcoin, more sources, scheduling; dedupe creator ranking per platform; demo video asset.

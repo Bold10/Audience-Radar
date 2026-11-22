@@ -34,11 +34,10 @@ export const Header = () => {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-8">
         <Logo />
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
-          {NAV.map((n) => (
-            <NavLink key={n.id} to={n.to} data-testid={`nav-${n.id}-link`}
-              className="rounded-full px-4 py-2.5 text-sm font-medium text-soft transition-colors hover:text-ink">
-              {n.label}
-            </NavLink>
+          {NAV.map((n) => n.to.startsWith("/#") ? (
+            <Link key={n.id} to={n.to} data-testid={`nav-${n.id}-link`} className="nav-link">{n.label}</Link>
+          ) : (
+            <NavLink key={n.id} to={n.to} data-testid={`nav-${n.id}-link`} className="nav-link">{n.label}</NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-2">
@@ -54,7 +53,7 @@ export const Header = () => {
         <nav className="border-t border-line px-5 py-3 lg:hidden" aria-label="Mobile" data-testid="mobile-menu">
           {[...NAV, { to: "/app", label: "Start a run", id: "start" }].map((n) => (
             <Link key={n.id} to={n.to} onClick={() => setOpen(false)} data-testid={`mobile-nav-${n.id}-link`}
-              className="flex min-h-[44px] items-center font-medium">
+              className="flex min-h-[44px] items-center rounded-xl px-3 font-medium transition-[background-color,transform] duration-200 hover:translate-x-1 hover:bg-surface">
               {n.label}
             </Link>
           ))}

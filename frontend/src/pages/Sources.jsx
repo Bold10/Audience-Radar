@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
 import { api, clientId, money, unitLabel, useConfig } from "@/lib/api";
+import { SourceTag } from "@/components/Interest";
 import { useFlow } from "@/lib/flow";
 
 export default function Sources() {
@@ -45,7 +46,7 @@ export default function Sources() {
             <label key={s.id} htmlFor={`src-${s.id}`} className="card-ar flex min-h-[72px] cursor-pointer items-center gap-4 p-5 transition-colors hover:border-ink" data-testid={`source-row-${s.id}`}>
               <Checkbox id={`src-${s.id}`} checked={flow.sources.includes(s.id)} onCheckedChange={() => toggle(s.id)} className="h-5 w-5 rounded-md" data-testid={`source-checkbox-${s.id}`} />
               <span className="flex-1">
-                <span className="font-display text-lg font-semibold">{s.name}</span>
+                <span className="flex items-center gap-2 font-display text-lg font-semibold">{s.name} <SourceTag live={s.live} testid={`source-tag-${s.id}`} /></span>
                 <span className="block text-sm text-soft">Sample size: {unitLabel(s.sample_size, s.unit)}</span>
               </span>
               <span className={`rounded-full border px-3 py-1 text-xs font-bold tracking-wider ${s.paid ? "border-btn text-btn" : "border-line"}`}>{s.paid ? "PAID" : "FREE"}</span>

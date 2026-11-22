@@ -3,14 +3,14 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
-import { DemoBadge, EstimateMeta, InterestLabel } from "@/components/Interest";
+import { DemoBadge, EstimateMeta, InterestLabel, SourceTag } from "@/components/Interest";
 import { api } from "@/lib/api";
 
 const SourceRows = ({ rows }) => (
   <ul className="space-y-3" data-testid="results-source-list">
     {rows.map((r) => (
       <li key={r.id} className="card-ar grid items-center gap-3 p-5 sm:grid-cols-[1fr_auto_1.2fr]" data-testid={`result-row-${r.id}`}>
-        <span className="font-display text-2xl font-semibold">{r.name}</span>
+        <span className="flex items-center gap-2 font-display text-2xl font-semibold">{r.name} <SourceTag live={r.live} testid={`result-tag-${r.id}`} /></span>
         <InterestLabel label={r.label} testid={`result-label-${r.id}`} />
         <span className="sm:text-right"><EstimateMeta sample={r.sample_size} unit={r.unit} testid={`result-meta-${r.id}`} /></span>
       </li>
@@ -63,7 +63,7 @@ export default function Results() {
     <Page testid="results-page">
       <Stepper current={4} />
       <div className="flex flex-wrap items-center gap-3">
-        <DemoBadge />
+        <DemoBadge demo={res.demo !== false} />
         <span className="text-sm text-soft">{creator ? `Creator · ${run.role}` : "Launch mode"} · {run.audience.name}</span>
       </div>
       <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">{creator ? "Where to publish" : "Your audience radar"}</h1>

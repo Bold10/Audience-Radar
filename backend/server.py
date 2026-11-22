@@ -19,7 +19,7 @@ from starlette.middleware.cors import CORSMiddleware
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
-from adapters import data_mode, get_adapters  # noqa: E402
+from adapters import data_mode, demo_adapters, get_adapters  # noqa: E402
 from model_layer import ai_available, call_model, model_config  # noqa: E402
 from scoring import interest, keyword_candidates  # noqa: E402
 from settings import load_settings  # noqa: E402
@@ -112,9 +112,16 @@ async def compute_results(run: dict) -> dict:
     rows, all_items = [], []
     for sid in run["sources"]:
         a = adapters[sid]
-        items = await a.fetch(run["description"], run["audience"]["name"])
+        live = a.live
+        try:
+            items = await a.fetch(run["description"], run["audience"]["name"])
+        except Exception as exc:
+            logging.getLogger(__name__).warning("Live %s fetch failed, using sample data: %s", sid, exc)
+            a, live = demo_adapters()[sid], False
+            items = await a.fetch(run["description"], run["audience"]["name"])
         all_items += items
-        rows.append({"id": sid, "name": a.name, "paid": a.paid, "unit": a.unit, **interest(sid, items, s["interest"])})
+        rows.append({"id": sid, "name": a.name, "paid": a.paid, "unit": a.unit, "live": live,
+                     **interest(sid, items, s["interest"], live)})
     count = s["keywords"]["count"]
     candidates = keyword_candidates(all_items, s["keywords"])
     creator = run["mode"] == "creator"
@@ -136,9 +143,11 @@ async def compute_results(run: dict) -> dict:
         ai_used = ai_used or bool(ranked)
         results["creator_ranking"] = [
             {**it, "name": by_id[it["platform"]]["name"], "label": by_id[it["platform"]]["label"],
-             "sample_size": by_id[it["platform"]]["sample_size"], "unit": by_id[it["platform"]]["unit"]}
+             "sample_size": by_id[it["platform"]]["sample_size"], "unit": by_id[it["platform"]]["unit"],
+             "live": by_id[it["platform"]]["live"]}
             for it in items if it["platform"] in by_id]
     results["ai_used"] = ai_used
+    results["demo"] = not all(r["live"] for r in rows)
     return results
 
 
@@ -151,8 +160,9 @@ async def root():
 async def get_config():
     s = load_settings()
     cfg = model_config()
-    return {"demo_mode": data_mode() == "demo", "pricing": s["pricing"], "thresholds": s["interest"]["thresholds"],
-            "sources": [a.meta() for a in get_adapters().values()],
+    sources = [a.meta() for a in get_adapters().values()]
+    return {"demo_mode": not all(m["live"] for m in sources), "data_mode": data_mode(), "pricing": s["pricing"],
+            "thresholds": s["interest"]["thresholds"], "sources": sources,
             "ai": {"enabled": ai_available(), "provider": cfg["provider"], "model": cfg["model"]},
             "sample_niche": SAMPLE_NICHE}
 
@@ -176,7 +186,7 @@ async def get_quote(sources: List[SourceId]):
 @api.post("/runs")
 async def create_run(body: RunIn):
     run = {**body.model_dump(), "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat(),
-           "status": "pending_payment", "cost": quote(body.sources), "demo": data_mode() == "demo",
+           "status": "pending_payment", "cost": quote(body.sources), "demo": not all(get_adapters()[s].live for s in body.sources),
            "payment": None, "results": None, "kit": None}
     await db.runs.insert_one(dict(run))
     return run
@@ -219,7 +229,7 @@ async def launch_kit(run_id: str):
     if run["status"] != "paid":
         raise HTTPException(402, "Run is not paid yet")
     if run.get("kit"):
-        return run["kit"]
+        return {**run["kit"], "demo": run["results"].get("demo", True)}
     res = run["results"]
     kit = await call_model("launch_kit", {
         "product_or_niche": run["description"], "mode": run["mode"], "role": run.get("role"),
@@ -227,7 +237,7 @@ async def launch_kit(run_id: str):
         "best_sources": [{"source": r["name"], "interest": r["label"]} for r in res["sources"]]})
     kit = {**(kit or FALLBACKS["launch_kit"]), "source": "ai" if kit else "sample", "keywords": res["keywords"]}
     await db.runs.update_one({"id": run_id, "kit": None}, {"$set": {"kit": kit}})
-    return (await get_run(run_id))["kit"]
+    return {**(await get_run(run_id))["kit"], "demo": res.get("demo", True)}
 
 
 app.include_router(api)
