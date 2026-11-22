@@ -1,7 +1,7 @@
 import { Copy, Download } from "lucide-react";
 import { toast } from "sonner";
 
-export const KitBlock = ({ title, id, copyText, onDownload, children }) => {
+export const KitBlock = ({ title, id, copyText, onDownload, extra, children }) => {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(copyText);
@@ -23,6 +23,7 @@ export const KitBlock = ({ title, id, copyText, onDownload, children }) => {
         <button type="button" className="btn-ghost" onClick={onDownload} data-testid={`kit-${id}-download-button`}>
           <Download size={16} /> Download
         </button>
+        {extra}
       </div>
     </section>
   );

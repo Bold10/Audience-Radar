@@ -5,8 +5,9 @@ import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
 import { DemoBadge, EstimateMeta, InterestLabel, SourceTag } from "@/components/Interest";
 import { api } from "@/lib/api";
+import { ShareControl } from "@/components/ShareControl";
 
-const SourceRows = ({ rows }) => (
+export const SourceRows = ({ rows }) => (
   <ul className="space-y-3" data-testid="results-source-list">
     {rows.map((r) => (
       <li key={r.id} className="card-ar grid items-center gap-3 p-5 sm:grid-cols-[1fr_auto_1.2fr]" data-testid={`result-row-${r.id}`}>
@@ -18,7 +19,7 @@ const SourceRows = ({ rows }) => (
   </ul>
 );
 
-const Keywords = ({ words }) => (
+export const Keywords = ({ words }) => (
   <section className="mt-12" data-testid="hot-keywords-section">
     <h2 className="font-display text-2xl font-semibold">Hot keywords</h2>
     <p className="mt-1 text-sm text-soft">Words over-represented in top-performing posts (top 20% by engagement relative to followers). Keywords only, no post text.</p>
@@ -28,7 +29,7 @@ const Keywords = ({ words }) => (
   </section>
 );
 
-const CreatorList = ({ items }) => (
+export const CreatorList = ({ items }) => (
   <ol className="space-y-3" data-testid="creator-ranking-list">
     {items.map((it, i) => (
       <li key={`${it.platform}-${i}`} className="card-ar grid gap-4 p-5 md:grid-cols-[auto_1fr_auto]" data-testid={`creator-rank-${i}`}>
@@ -70,9 +71,10 @@ export default function Results() {
       <p className="mt-4 max-w-2xl text-base text-soft md:text-lg">For “{run.description}”. Interest labels are estimates from sampled posts (volume plus median engagement), not knowledge of any platform's algorithm.</p>
       <div className="mt-10">{creator ? <CreatorList items={res.creator_ranking} /> : <SourceRows rows={res.sources} />}</div>
       <Keywords words={res.keywords} />
-      <div className="mt-12 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-12 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
         <Link to={`/app/runs/${runId}/kit`} className="btn-primary" data-testid="open-launch-kit-button">Open launch kit <ArrowRight size={18} /></Link>
         <Link to="/history" className="btn-ghost" data-testid="results-history-link">View history</Link>
+        <ShareControl runId={runId} />
       </div>
     </Page>
   );

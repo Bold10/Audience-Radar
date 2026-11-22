@@ -13,6 +13,10 @@ import Pay from "@/pages/Pay";
 import Results from "@/pages/Results";
 import Kit from "@/pages/Kit";
 import History from "@/pages/History";
+import SharedRun from "@/pages/SharedRun";
+import { SignInPage, SignUpPage } from "@/pages/AuthPages";
+import ClerkAuthProvider from "@/components/auth/ClerkAuthProvider";
+import { AuthBridge } from "@/components/auth/AuthBridge";
 
 function App() {
   return (
@@ -20,10 +24,15 @@ function App() {
       <FlowProvider>
         <div className="App">
           <BrowserRouter>
+            <ClerkAuthProvider>
+            <AuthBridge />
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Landing />} />
                 <Route path="/roadmap" element={<Roadmap />} />
+                <Route path="/sign-in/*" element={<SignInPage />} />
+                <Route path="/sign-up/*" element={<SignUpPage />} />
+                <Route path="/s/:token" element={<SharedRun />} />
                 <Route path="/app" element={<Describe />} />
                 <Route path="/app/audience" element={<AudiencePage />} />
                 <Route path="/app/sources" element={<Sources />} />
@@ -33,6 +42,7 @@ function App() {
                 <Route path="/history" element={<History />} />
               </Route>
             </Routes>
+            </ClerkAuthProvider>
           </BrowserRouter>
           <Toaster position="bottom-center" />
         </div>

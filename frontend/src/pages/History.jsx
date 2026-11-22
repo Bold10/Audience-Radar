@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@clerk/react";
 import { Page } from "@/components/Layout";
 import { api, clientId, fmtDate, money } from "@/lib/api";
 
@@ -24,18 +25,20 @@ const RunRow = ({ r }) => (
 );
 
 export default function History() {
+  const { isLoaded, isSignedIn } = useAuth();
   const [scope, setScope] = useState("mine");
   const [runs, setRuns] = useState(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
     setRuns(null);
     api.get("/runs", { params: { scope, client_id: clientId() } }).then((r) => setRuns(r.data)).catch(() => setRuns([]));
-  }, [scope]);
+  }, [scope, isLoaded, isSignedIn]);
 
   return (
     <Page testid="history-page">
       <h1 className="font-display text-4xl font-bold sm:text-5xl">History</h1>
-      <p className="mt-4 text-base text-soft md:text-lg">Past runs with date, niche, mode and cost. No account needed.</p>
+      <p className="mt-4 text-base text-soft md:text-lg" data-testid="history-subtitle">Past runs with date, niche, mode and cost. {isSignedIn ? "My runs shows your account's runs on any device." : "My runs shows this browser's runs. Sign up to keep them on any device."}</p>
       <Tabs value={scope} onValueChange={setScope} className="mt-8">
         <TabsList className="h-auto rounded-full bg-surface p-1">
           <TabsTrigger value="mine" className="min-h-[40px] rounded-full px-5" data-testid="history-tab-mine">My runs</TabsTrigger>

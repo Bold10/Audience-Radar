@@ -3,6 +3,13 @@ import useSWR from "swr";
 
 export const api = axios.create({ baseURL: `${process.env.REACT_APP_BACKEND_URL}/api` });
 
+// Attach the Clerk session token when signed in; signed-out requests go without it.
+api.interceptors.request.use(async (config) => {
+  const token = await window.Clerk?.session?.getToken?.().catch(() => null);
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export const clientId = () => {
   let id = localStorage.getItem("ar_client_id");
   if (!id) {
