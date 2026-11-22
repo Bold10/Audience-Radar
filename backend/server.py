@@ -35,8 +35,6 @@ client = AsyncIOMotorClient(os.environ["MONGO_URL"])
 db = client[os.environ["DB_NAME"]]
 FALLBACKS = json.loads((ROOT_DIR / "sample_data" / "ai_fallbacks.json").read_text())
 SAMPLE_NICHE = "a portfolio tracker for crypto traders"
-GMAIL_DOMAINS = {"gmail.com", "googlemail.com"}
-GMAIL_ONLY = "Only Gmail addresses (@gmail.com or @googlemail.com) are supported for now."
 
 
 def _clerk_email(user_id: str) -> str:
@@ -52,14 +50,14 @@ async def account_for(user_id: str) -> dict:
     acct = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if acct is None:
         email = await run_in_threadpool(_clerk_email, user_id)
-        acct = {"user_id": user_id, "email": email, "gmail": email.rsplit("@", 1)[-1] in GMAIL_DOMAINS,
+        acct = {"user_id": user_id, "email": email,
                 "created_at": datetime.now(timezone.utc).isoformat()}
         await db.users.update_one({"user_id": user_id}, {"$setOnInsert": acct}, upsert=True)
     return acct
 
 
 async def optional_account(request: Request) -> Optional[dict]:
-    """Signed-in Gmail account, None when signed out; 403 for non-Gmail accounts."""
+    """Signed-in account, or None when signed out."""
     auth = request.headers.get("authorization", "")
     if not auth.lower().startswith("bearer "):
         return None
@@ -71,8 +69,6 @@ async def optional_account(request: Request) -> Optional[dict]:
         acct = await account_for(claims["sub"])
     except requests.RequestException:
         raise HTTPException(503, "Sign-in service is unavailable, try again shortly")
-    if not acct["gmail"]:
-        raise HTTPException(403, GMAIL_ONLY)
     return acct
 
 
@@ -268,7 +264,7 @@ async def list_runs(scope: Literal["mine", "all"] = "mine", client_id: Optional[
 @api.get("/me")
 async def me(user: dict = Depends(require_user)):
     acct = await account_for(user["user_id"])
-    return {"email": acct["email"], "gmail": acct["gmail"], "message": None if acct["gmail"] else GMAIL_ONLY}
+    return {"email": acct["email"]}
 
 
 class ClaimIn(BaseModel):

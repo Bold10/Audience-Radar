@@ -29,6 +29,9 @@
 - Launch kit: Hot keywords block under X post (per-chip copy + Copy all). Editable SVG card (text layers + logo layer), included in zip.
 - Tested iteration_3: backend 26/26, frontend 100%.
 
+## Iteration 5 (2026-06)
+- Sign-up switched from Gmail-only to any email (rule removed in backend + frontend). Email one-time code unchanged.
+
 ## Backlog
 - P1: Live adapters (official APIs), real crypto payment, threshold tuning on real data.
 - P1: Ownership check on pay/kit endpoints; Continue with Google; share link view stats/expiry.
