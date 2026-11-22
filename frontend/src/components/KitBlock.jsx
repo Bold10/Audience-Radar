@@ -3,8 +3,12 @@ import { toast } from "sonner";
 
 export const KitBlock = ({ title, id, copyText, onDownload, children }) => {
   const copy = async () => {
-    await navigator.clipboard.writeText(copyText);
-    toast.success(`${title} copied`);
+    try {
+      await navigator.clipboard.writeText(copyText);
+      toast.success(`${title} copied`);
+    } catch {
+      toast.error("Copy is blocked in this browser. Use Download instead.");
+    }
   };
   return (
     <section className="card-ar flex flex-col p-5 md:p-6" data-testid={`kit-${id}-card`}>

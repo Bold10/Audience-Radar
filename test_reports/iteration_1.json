@@ -1,0 +1,42 @@
+{
+  "summary": "First full test of Audience Radar (demo mode). Backend: 12/12 pytest pass (config, audiences sample + AI refine, run cost 2.5/0, validation 422, kit-before-pay 402, 404, mock pay launch results X High/Telegram Medium/Reddit Low/YouTube Medium with sample sizes 500/40/300/120 and 8 keywords, AI launch kit, creator_ranking, history mine/all). Frontend: desktop launch flow end-to-end OK (sample -> Day traders/Long-term holders/NFT collectors, refine gives 3 new AI cards, $2.50 -> $0.00 when X unchecked -> $2.50, 'Pay $2.50 with crypto', mock dialog + confirmation + tx hash, results rows + Estimate + 8 keyword chips + Demo data badge, kit with highlights, card image, copy/download buttons, zip download audience-radar-launch-kit.zip). Mobile 390px creator flow OK (role selector, mock pay with ETH, creator-ranking-list with label/reason/best format/Estimate, no horizontal overflow). Mobile menu, history tabs + row links, /roadmap 3 columns, landing sections (how, modes, features, pricing, roadmap, faq), theme toggle + logo swap all OK. Found and FIXED one real bug: brand accent colour was broken app-wide (interest bars rendered black, invisible in dark mode).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/runs/{id}/pay", "issue": "Not concurrency-safe: two simultaneous calls on a pending run both compute results and write different tx_hash/keywords (no atomic status check e.g. find_one_and_update with status=pending_payment)."},
+      {"endpoint": "POST /api/runs/{id}/kit", "issue": "Same race: React StrictMode/double clicks can fire two concurrent kit generations; the one shown may differ from the one persisted. Use an atomic set-if-absent."},
+      {"endpoint": "GET /api/runs?scope=all", "issue": "Exposes every user's niche descriptions to anyone (by design for demo, but note privacy)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "index.css theme tokens", "issue": "FIXED: custom --accent (#E5482D / #FF6A4A) was overwritten later in the same :root/.dark block by the shadcn HSL token '--accent: 40 33% 89%'. So var(--accent) was invalid -> interest bars filled black (rgb(0,0,0)) in both themes (near-invisible in dark), text-brand/bg-brand (cost total, rank numbers, hero accent words, roadmap bullet dots, confirm check icon), keyword highlight underline and ::selection all lost the accent colour. Renamed custom token to --brand-accent (index.css, tailwind.config.js brand, Interest.jsx). Verified fill now rgb(229,72,45) light / rgb(255,106,74) dark.", "selector": "svg[aria-label*=interest] rect, .text-brand", "priority": "HIGH"},
+      {"component": "KitBlock copy", "issue": "navigator.clipboard.writeText has no try/catch; when clipboard is denied (e.g. non-secure/iframe/headless) nothing happens and no error toast is shown (unhandled rejection).", "selector": "[data-testid=kit-x-copy-button]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Header logo (mobile, when content scrolls under sticky header / dialog overlay)", "issues": ["Logo PNGs appear to have an opaque background slightly different from the header bg, showing a visible rectangle behind 'Audience Radar' wordmark when scrolled. Use transparent PNG/SVG."]},
+      {"screen": "Creator results", "issues": ["AI sometimes returns the same platform twice (e.g. YouTube x2, Telegram x2) - acceptable as communities, but consider limiting per platform or grouping."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_audience_radar.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Review my CSS fix (--accent renamed to --brand-accent) and keep it; do not reintroduce a custom var with a shadcn token name",
+    "Make pay and kit endpoints idempotent under concurrency (atomic find_one_and_update on status / kit null)",
+    "Wrap clipboard copy in try/catch with an error toast",
+    "Use transparent logo assets so no box shows on the sticky header"
+  ],
+  "critical_code_review_comments": [
+    "server.py pay_run: check-then-write race (status read, slow AI call, then update) - use conditional update",
+    "Kit.jsx useEffect has no cancellation; in StrictMode dev it calls /kit twice",
+    "No delete endpoint for runs; tests clean up via direct Mongo by id"
+  ],
+  "updated_files": ["/app/frontend/src/index.css", "/app/frontend/tailwind.config.js", "/app/frontend/src/components/Interest.jsx", "/app/backend/tests/test_audience_radar.py"],
+  "success_rate": {"backend": "100%", "frontend": "95% (all flows pass; accent colour bug fixed by tester)"},
+  "test_credentials": "None - no auth",
+  "seed_data_creation": "Created runs during tests; all my runs deleted by id. Note: during dark-mode check I opened the kit page for an existing paid creator run (client 0f6e2816..., not created by me) which generated and saved a kit on that run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app/backend && REACT_APP_BACKEND_URL=<url> python -m pytest tests/test_audience_radar.py -n 0 (pytest.ini forces xdist; use -n 0 not -p no:xdist). Pay/kit AI calls take ~5-20s. History 'mine' depends on localStorage ar_client_id. Sample description round 0 returns fixed audiences; refine uses Gemini.",
+  "rca of the issue": "Accent colour bug: index.css :root defines --accent twice (custom hex on line 13, shadcn HSL triplet on line 30); the later wins, making var(--accent) = '40 33% 89%' which is invalid for fill/color, so SVG fill fell back to black. Mitigation applied: renamed custom token to --brand-accent."
+}

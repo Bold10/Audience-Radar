@@ -208,7 +208,8 @@ async def pay_run(run_id: str, body: PayIn):
     payment = {"mock": True, "asset": body.asset, "amount": run["cost"]["total"],
                "tx_hash": "0x" + secrets.token_hex(32), "paid_at": datetime.now(timezone.utc).isoformat()}
     results = await compute_results(run)
-    await db.runs.update_one({"id": run_id}, {"$set": {"status": "paid", "payment": payment, "results": results}})
+    await db.runs.update_one({"id": run_id, "status": "pending_payment"},
+                             {"$set": {"status": "paid", "payment": payment, "results": results}})
     return await read_run(run_id)
 
 
@@ -225,8 +226,8 @@ async def launch_kit(run_id: str):
         "audience": run["audience"], "hot_keywords": res["keywords"],
         "best_sources": [{"source": r["name"], "interest": r["label"]} for r in res["sources"]]})
     kit = {**(kit or FALLBACKS["launch_kit"]), "source": "ai" if kit else "sample", "keywords": res["keywords"]}
-    await db.runs.update_one({"id": run_id}, {"$set": {"kit": kit}})
-    return kit
+    await db.runs.update_one({"id": run_id, "kit": None}, {"$set": {"kit": kit}})
+    return (await get_run(run_id))["kit"]
 
 
 app.include_router(api)

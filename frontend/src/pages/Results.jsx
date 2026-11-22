@@ -32,7 +32,7 @@ const CreatorList = ({ items }) => (
   <ol className="space-y-3" data-testid="creator-ranking-list">
     {items.map((it, i) => (
       <li key={`${it.platform}-${i}`} className="card-ar grid gap-4 p-5 md:grid-cols-[auto_1fr_auto]" data-testid={`creator-rank-${i}`}>
-        <span className="font-display text-4xl font-bold text-brand" aria-label={`Rank ${i + 1}`}>{String(i + 1).padStart(2, "0")}</span>
+        <span className="w-14 font-display text-4xl font-bold text-brand tabular-nums" aria-label={`Rank ${i + 1}`}>{String(i + 1).padStart(2, "0")}</span>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-soft">{it.name}</p>
           <p className="font-display text-xl font-semibold">{it.community}</p>

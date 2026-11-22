@@ -25,7 +25,7 @@ module.exports = {
         ink: 'var(--text)',
         soft: 'var(--muted-text)',
         line: 'var(--line)',
-        brand: 'var(--accent)',
+        brand: 'var(--brand-accent)',
         btn: 'var(--btn)',
         btnink: 'var(--btn-text)',
         hl: 'var(--highlight-bg)',

@@ -12,7 +12,7 @@ export const InterestBars = ({ label, size = 22 }) => {
         const on = i < lvl;
         return (
           <rect key={i} x={1 + i * 7.5} y={21 - h} width="5" height={h} rx="1.5"
-            style={{ fill: on ? "var(--accent)" : "transparent", stroke: on ? "var(--accent)" : "var(--muted-text)" }} strokeWidth="1.2" />
+            style={{ fill: on ? "var(--brand-accent)" : "transparent", stroke: on ? "var(--brand-accent)" : "var(--muted-text)" }} strokeWidth="1.2" />
         );
       })}
     </svg>
