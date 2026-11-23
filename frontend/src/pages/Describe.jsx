@@ -8,7 +8,7 @@ import { useFlow } from "@/lib/flow";
 const ROLES = ["Video creator", "Writer", "Designer", "Other"];
 const MODES = [
   { id: "launch", label: "I'm launching a product", icon: Megaphone },
-  { id: "creator", label: "I'm a creator", icon: Video },
+  { id: "creator", label: "I'm a researcher", icon: Video },
 ];
 const EXAMPLES = { launch: "a portfolio tracker for crypto traders", creator: "crypto trading education" };
 
