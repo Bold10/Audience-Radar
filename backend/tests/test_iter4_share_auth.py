@@ -118,19 +118,14 @@ def test_me_no_token_401():
 def test_me_gmail(tokens):
     r = requests.get(f"{BASE_URL}/api/me", headers=H(tokens["gmail"]))
     assert r.status_code == 200
-    assert r.json() == {"email": GMAIL, "gmail": True, "message": None}
+    assert r.json() == {"email": GMAIL}  # gmail-only gate removed
 
 
-def test_non_gmail_refused(tokens):
-    r = requests.get(f"{BASE_URL}/api/me", headers=H(tokens["other"]))
-    assert r.status_code == 200
-    assert r.json()["gmail"] is False and r.json()["message"]
+def test_non_gmail_accepted(tokens):  # non-Gmail sign-in now allowed
     h = H(tokens["other"])
-    assert requests.get(f"{BASE_URL}/api/runs", params={"scope": "mine"}, headers=h).status_code == 403
-    assert requests.post(f"{BASE_URL}/api/me/claim", json={"client_id": "TEST_abcdef"}, headers=h).status_code == 403
-    r = requests.post(f"{BASE_URL}/api/runs", headers=h, json={
-        "client_id": "TEST_abcdef", "description": "x tool", "mode": "launch", "audience": AUD, "sources": ["reddit"]})
-    assert r.status_code == 403
+    r = requests.get(f"{BASE_URL}/api/me", headers=h)
+    assert r.status_code == 200 and r.json()["email"].endswith("@example.com")
+    assert requests.get(f"{BASE_URL}/api/runs", params={"scope": "mine"}, headers=h).status_code == 200
 
 
 def test_claim_and_scopes(tokens):

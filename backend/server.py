@@ -261,7 +261,8 @@ async def compute_results(run: dict, requester: str) -> dict:
             "platforms": [{"platform": r["id"], "interest": r["label"], "sample_size": r["sample_size"], "unit": r["unit"]}
                           for r in rows]}, requester)
         fallback = FALLBACKS["researcher_ranking"]
-        items = (ranked or {}).get("items") or fallback.get(role, fallback["Other"])
+        items = (ranked or {}).get("items") or sorted(
+            fallback.get(role, fallback["Other"]), key=lambda it: -by_id.get(it["platform"], {"score": -1})["score"])
         results["ranking_source"] = source if ranked else "sample"
         results["researcher_ranking"] = [
             {**it, "name": by_id[it["platform"]]["name"], "label": by_id[it["platform"]]["label"],

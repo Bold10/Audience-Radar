@@ -58,7 +58,11 @@ export default function Sources() {
   const total = lines.reduce((t, l) => t + l.cost, 0);
   const tooMany = flow.sources.includes("x") && xPosts > p.max_posts;
   const toggle = (id) => update({ sources: flow.sources.includes(id) ? flow.sources.filter((x) => x !== id) : [...flow.sources, id] });
-  const setPosts = (n) => { setError(""); update({ xPosts: Number.isFinite(n) ? n : p.default_posts }); };
+  const setPosts = (n) => {
+    setError("");
+    const snapped = Number.isFinite(n) && n > 0 ? Math.max(p.min_posts, Math.round(n / p.step) * p.step) : p.default_posts;
+    update({ xPosts: snapped });
+  };
 
   const proceed = async () => {
     setBusy(true);

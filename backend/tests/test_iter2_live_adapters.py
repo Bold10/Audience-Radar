@@ -34,12 +34,12 @@ def test_config_auto_all_demo(s):
     assert sizes["x"] == 500
 
 
-def test_quote_total_250(s):
+def test_quote_total_default_50_posts(s):
     r = s.post(f"{BASE_URL}/api/runs", json={"client_id": CLIENT, "description": SAMPLE, "mode": "launch",
                                              "audience": AUD, "sources": ALL})
     assert r.status_code == 200
     CREATED.append(r.json()["id"])
-    assert r.json()["cost"]["total"] == 2.5
+    assert r.json()["cost"]["total"] == 0.5
     assert r.json()["demo"] is True
 
 
@@ -62,14 +62,14 @@ def test_full_run_demo_flags(s):
     assert k.json()["demo"] is True
 
 
-def test_creator_ranking_live_flag(s):
+def test_researcher_ranking_live_flag(s):
     r = s.post(f"{BASE_URL}/api/runs", json={"client_id": CLIENT, "description": "crypto trading education",
-                                             "mode": "creator", "role": "Video creator", "audience": AUD, "sources": ALL})
+                                             "mode": "researcher", "role": "Video creator", "audience": AUD, "sources": ALL})
     rid = r.json()["id"]
     CREATED.append(rid)
     p = s.post(f"{BASE_URL}/api/runs/{rid}/pay", json={"asset": "ETH"}, timeout=120)
     assert p.status_code == 200
-    cr = p.json()["results"]["creator_ranking"]
+    cr = p.json()["results"]["researcher_ranking"]
     assert cr and all(it["live"] is False for it in cr)
 
 
@@ -88,7 +88,7 @@ def test_unit_selection_auto_vs_demo(monkeypatch):
     assert all(not a.live for a in ad.get_adapters().values())
     monkeypatch.setenv("X_BEARER_TOKEN", "fake")
     a = ad.get_adapters()
-    assert a["x"].live and a["x"].sample_size() == 100
+    assert a["x"].live and a["x"].sample_size() == 50
     assert not a["reddit"].live and not a["telegram"].live
     monkeypatch.setenv("DATA_MODE", "demo")
     assert not ad.get_adapters()["x"].live

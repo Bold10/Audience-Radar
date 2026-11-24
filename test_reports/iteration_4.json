@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 4 (Audience Radar final update) tested end to end. Backend: 43/43 pytest pass, including a new file test_iter5_researcher_pricing.py (21 cases) and 3 older files updated for the creator->researcher rename, the $0.01/post pricing and the removed Gmail-only rule. Covered: config pricing, ai.enabled false, payment_mode mock, no secrets; quote 50->0.5, 100->1.0, 150->422 with the exact message, 75/0/25/-50->422, free-only $0; researcher + Sales rep run gives researcher_ranking with show_up, ranking_source sample, X sample 50, fallback 'No X key set', label High; launch run with 100 posts gives X High, sample 100; 8 keywords; 'creator' mode, 1001-char description and 41-char role all give 422; no x_api_cost_usd/client_id/user_id in POST/pay/GET; kit source sample; share create/read/stop, non-owner 403, shared 404 after stop. Frontend (desktop 1920, mobile 390, light and dark): researcher toggle, all 5 role options, Other input (labelled, capped at 40), char counter capped at 1000, audience Sample note, full researcher flow to 'Best places to reach your audience' with 5 ranked items, 3-bar SVG, Estimate, 'Best way to show up', Sample label; Copy summary puts correct plain text on the clipboard. Sources: -/+ stepper ($0.50 <-> $1.00), + disabled at 100, - disabled at 50, typing 150 shows sources-error and disables Continue, LinkedIn row disabled with COMING SOON. Launch results: every row shows Demo data, X shows 'Showing sample result' (title 'No X key set'), X High at 100. Kit and shared page show the Sample label and note. Landing shows the researcher card, the $0.50/$1.00 pricing table and LinkedIn in the roadmap; the roadmap page lists LinkedIn. History shows 'Researcher · Sales rep' for new runs and 'Researcher · Writer' for an old 'creator' run inserted directly into the DB. No horizontal overflow at 390px. Only minor UX issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "compute_results researcher_ranking (sample)", "issue": "When there is no AI key, the ranking is a fixed per-role list taken from ai_fallbacks.json. It is not sorted by the computed interest: YouTube (Medium) is #1 and X (High) is #2. Its reason text has labels baked in ('Highest interest estimate', 'Medium interest...'), and it names crypto communities for any niche. It is labelled Sample, but the reasons can contradict the computed labels for other niches."},
+      {"endpoint": "GET /api/runs?scope=all and GET /api/runs/{id}", "issue": "Still public with no owner check, same as earlier iterations. Anyone can list every run's description and audience."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Sources PostCount", "issue": "Values that are not a multiple of 50 (for example 75) are not checked in the browser. The total shows $0.75 and Continue stays enabled; the error only appears after the server returns 422. Clicking - at 75 goes to 25, below the minimum. Suggest snapping or validating min/step on the client like the >100 check.", "selector": "[data-testid='x-posts-input']", "priority": "LOW"},
+      {"component": "Sources PostCount", "issue": "Clearing the number field snaps it straight back to 50 (Number('') = 0, which falls back to the default), so the user cannot clear the field and type a new value.", "selector": "[data-testid='x-posts-input']", "priority": "LOW"},
+      {"component": "Sources cost box", "issue": "Typing 150 shows Total $1.50 while the run is blocked. Consider capping the shown total or greying it out.", "selector": "[data-testid='cost-total']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_iter5_researcher_pricing.py", "/app/backend/tests/test_audience_radar.py", "/app/backend/tests/test_iter2_live_adapters.py", "/app/backend/tests/test_iter4_share_auth.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Optional: validate the X post count (min 50, steps of 50) in the browser and stop - going below 50 from an off-step value",
+    "Optional: let the posts input be cleared while typing; snap to a valid value on blur",
+    "Optional: sort the sample researcher ranking by computed interest, or reword the fallback reasons so they don't state labels"
+  ],
+  "critical_code_review_comments": [
+    "Sources.jsx tooMany only checks > max_posts; min and step are checked only on the server",
+    "server.py compute_results: the fallback ranking items' reason text can disagree with by_id[...]['label']",
+    "pay_run: two simultaneous pays both compute results (the update is guarded by status, so this is harmless with mock payment, but it matters once a real payment adapter exists)"
+  ],
+  "updated_files": ["/app/backend/tests/test_iter5_researcher_pricing.py (new)", "/app/backend/tests/test_audience_radar.py (updated for researcher and $0.01/post)", "/app/backend/tests/test_iter2_live_adapters.py (updated)", "/app/backend/tests/test_iter4_share_auth.py (Gmail tests changed to non-Gmail accepted)", "/app/backend/tests/mk_ui_run.py (researcher)"],
+  "success_rate": {"backend": "100%", "frontend": "97% (3 low-priority UX issues)"},
+  "seed_data_creation": "Test runs were created with client_ids TEST_i5* / TEST_i5ui001, plus one old 'creator' run inserted directly into the DB. All were deleted by id after testing. No seed or user data was changed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run with: pytest /app/backend/tests -n 0 (43 tests). test_iter5_researcher_pricing.py appends created run ids to /tmp/iter5_run_ids.txt for cleanup. UI flow: describe -> audience-option-0 -> audience-continue-button -> sources-continue-button -> pay-with-crypto-button -> mock-pay-confirm-button -> mock-pay-view-results-button. Theme toggle: theme-toggle-button. To check how old runs display, insert a mode 'creator' run directly into the DB (the API now rejects 'creator')."
+}

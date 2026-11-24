@@ -32,6 +32,14 @@
 ## Iteration 5 (2026-06)
 - Sign-up switched from Gmail-only to any email (rule removed in backend + frontend). Email one-time code unchanged.
 
+## Iteration 6 (2026-06) Final update
+- Creator mode renamed Researcher (old 'creator' runs display as Researcher). Roles: Video creator, Writer, Marketer, Sales rep, Other (free text 40). Results 'Best places to reach your audience' with role-specific 'Best way to show up' + Copy summary.
+- AI: Gemini direct (google-genai) via GEMINI_API_KEY/GEMINI_MODEL; no Emergent key. Prompt-injection guard, 1000-char cap, 20 req/browser/day, 24h cache, Live AI/Sample labels. AI keyword step removed.
+- X: post count 50-100 step 50, PRICE_PER_POST_USD 0.01, MAX_POSTS_PER_RUN, DAILY_X_POST_CAP, X_INCLUDE_AUTHOR_METRICS (raw engagement default), fallbacks 'Showing sample result'. Payment adapter (PAYMENT_MODE=mock). LinkedIn 'Coming soon'.
+- Docs: README, .env.example, LICENSE (MIT), .gitignore (.env excluded, verified not tracked).
+- Tested iteration_4: backend 43/43, frontend 97%. Fixed: sample ranking sorted by computed interest; post count snaps to steps of 50.
+- Open: public GET /api/runs?scope=all and /runs/{id}; clearing the post field snaps to 50; total shows over-limit amount while blocked.
+
 ## Backlog
 - P1: Live adapters (official APIs), real crypto payment, threshold tuning on real data.
 - P1: Ownership check on pay/kit endpoints; Continue with Google; share link view stats/expiry.

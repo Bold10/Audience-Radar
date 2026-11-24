@@ -30,7 +30,7 @@ def test_config(s):
     r = s.get(f"{BASE_URL}/api/config")
     assert r.status_code == 200
     d = r.json()
-    assert d["pricing"]["x_price_per_post"] == 0.005
+    assert d["pricing"]["price_per_post"] == 0.01 and d["pricing"]["max_posts"] == 100
     assert d["thresholds"] == {"high": 66, "medium": 33}
     sizes = {x["id"]: (x["sample_size"], x["paid"]) for x in d["sources"]}
     assert sizes == {"x": (500, True), "telegram": (40, False), "reddit": (300, False), "youtube": (120, False)}
@@ -71,7 +71,7 @@ def _run(s, sources, mode="launch", role=None, desc=SAMPLE):
 
 def test_run_cost_all(s):
     run = _run(s, ALL)
-    assert run["cost"]["total"] == 2.5
+    assert run["cost"]["total"] == 0.5
     assert run["status"] == "pending_payment"
     assert "_id" not in run
 
@@ -102,14 +102,13 @@ def test_pay_launch_and_kit(s):
     assert r.status_code == 200, r.text
     d = r.json()
     assert d["status"] == "paid"
-    assert d["payment"]["mock"] is True and d["payment"]["amount"] == 2.5
+    assert d["payment"]["mock"] is True and d["payment"]["amount"] == 0.5
     labels = {x["id"]: x["label"] for x in d["results"]["sources"]}
     assert labels == {"x": "High", "telegram": "Medium", "reddit": "Low", "youtube": "Medium"}
     sizes = {x["id"]: x["sample_size"] for x in d["results"]["sources"]}
-    assert sizes == {"x": 500, "telegram": 40, "reddit": 300, "youtube": 120}
+    assert sizes == {"x": 50, "telegram": 40, "reddit": 300, "youtube": 120}
     assert len(d["results"]["keywords"]) == 8
-    assert "creator_ranking" not in d["results"]
-    print("ai_used:", d["results"]["ai_used"], d["results"]["keywords"])
+    assert "researcher_ranking" not in d["results"]
     g = s.get(f"{BASE_URL}/api/runs/{run['id']}").json()
     assert g["status"] == "paid" and "client_id" not in g
     k = s.post(f"{BASE_URL}/api/runs/{run['id']}/kit", timeout=120)
@@ -123,15 +122,15 @@ def test_pay_launch_and_kit(s):
     assert s.post(f"{BASE_URL}/api/runs/{run['id']}/kit").json()["x_post"] == kit["x_post"]
 
 
-# Creator mode
+# Researcher mode (renamed from creator)
 def test_pay_creator(s):
-    run = _run(s, ALL, mode="creator", role="Video creator", desc="crypto trading education")
+    run = _run(s, ALL, mode="researcher", role="Video creator", desc="crypto trading education")
     r = s.post(f"{BASE_URL}/api/runs/{run['id']}/pay", json={"asset": "USDC"}, timeout=120)
     assert r.status_code == 200, r.text
-    cr = r.json()["results"]["creator_ranking"]
+    cr = r.json()["results"]["researcher_ranking"]
     assert len(cr) >= 2
     for it in cr:
-        assert it["label"] in ("High", "Medium", "Low") and it["reason"] and it["format"] and it["community"]
+        assert it["label"] in ("High", "Medium", "Low") and it["reason"] and it["show_up"] and it["community"]
 
 
 # History
