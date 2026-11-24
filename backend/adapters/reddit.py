@@ -21,7 +21,7 @@ class RedditLiveAdapter(_RedditMeta, LiveAdapter):
     credentials_env = ("REDDIT_CLIENT_ID", "REDDIT_CLIENT_SECRET", "REDDIT_USER_AGENT")
     sample_key = "reddit_max_posts"
 
-    async def fetch(self, query: str, audience: str) -> list[dict]:
+    async def fetch(self, query: str, audience: str, limit: int | None = None) -> list[dict]:
         limit = min(100, load_settings()["live"]["reddit_max_posts"])
         ua = {"User-Agent": os.environ["REDDIT_USER_AGENT"]}
         async with httpx.AsyncClient(timeout=20) as client:

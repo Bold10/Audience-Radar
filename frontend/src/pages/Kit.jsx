@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
-import { DemoBadge } from "@/components/Interest";
+import { AiSourceTag, DemoBadge } from "@/components/Interest";
 import { KitView } from "@/components/KitView";
 import { ShareControl } from "@/components/ShareControl";
 import { api } from "@/lib/api";
@@ -23,7 +23,7 @@ export default function Kit() {
   return (
     <Page testid="kit-page">
       <Stepper current={5} />
-      <div className="flex flex-wrap items-center gap-3"><DemoBadge demo={kit.demo !== false} /><span className="text-sm text-soft">{kit.source === "ai" ? "Written by AI" : "Sample copy"}</span></div>
+      <div className="flex flex-wrap items-center gap-3"><DemoBadge demo={kit.demo !== false} /><AiSourceTag source={kit.source} testid="kit-ai-source" /></div>
       <div className="mt-4 mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
           <h1 className="font-display text-4xl font-bold sm:text-5xl">Your launch kit</h1>

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
 import { MockPayDialog } from "@/components/MockPayDialog";
-import { api, money, unitLabel, useConfig } from "@/lib/api";
+import { api, modeLabel, money, unitLabel, useConfig } from "@/lib/api";
 
 export default function Pay() {
   const { runId } = useParams();
@@ -39,7 +39,7 @@ export default function Pay() {
         <dl className="grid gap-4 text-sm sm:grid-cols-2">
           <div><dt className="text-soft">{run.mode === "launch" ? "Product" : "Niche"}</dt><dd className="mt-1 font-medium">{run.description}</dd></div>
           <div><dt className="text-soft">Audience</dt><dd className="mt-1 font-medium">{run.audience.name}</dd></div>
-          <div><dt className="text-soft">Mode</dt><dd className="mt-1 font-medium">{run.mode === "launch" ? "Launching a product" : `Creator · ${run.role}`}</dd></div>
+          <div><dt className="text-soft">Mode</dt><dd className="mt-1 font-medium">{modeLabel(run, true)}</dd></div>
         </dl>
         <ul className="mt-6 space-y-2 border-t border-line pt-5 text-sm">
           {run.cost.lines.map((l) => (

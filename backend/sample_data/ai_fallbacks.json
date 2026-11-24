@@ -1,22 +1,69 @@
 {
   "audience_sets": [
     [
-      {"name": "Day traders", "description": "Active traders opening and closing positions daily who need live P&L across every exchange they use.", "signals": ["pnl", "scalping", "price alerts", "leverage"]},
-      {"name": "Long-term holders", "description": "Investors who buy and hold for years and want a calm view of allocation, cost basis and taxes.", "signals": ["dca", "cost basis", "rebalance", "hodl"]},
-      {"name": "NFT collectors", "description": "Collectors tracking floor prices and wallets across chains who want one view of what their collection is worth.", "signals": ["floor price", "multiwallet", "mint", "blue chip"]}
+      {
+        "name": "Day traders",
+        "description": "Active traders opening and closing positions daily who need live P&L across every exchange they use.",
+        "signals": [
+          "pnl",
+          "scalping",
+          "price alerts",
+          "leverage"
+        ]
+      },
+      {
+        "name": "Long-term holders",
+        "description": "Investors who buy and hold for years and want a calm view of allocation, cost basis and taxes.",
+        "signals": [
+          "dca",
+          "cost basis",
+          "rebalance",
+          "hodl"
+        ]
+      },
+      {
+        "name": "NFT collectors",
+        "description": "Collectors tracking floor prices and wallets across chains who want one view of what their collection is worth.",
+        "signals": [
+          "floor price",
+          "multiwallet",
+          "mint",
+          "blue chip"
+        ]
+      }
     ],
     [
-      {"name": "DeFi yield farmers", "description": "Users moving funds between protocols for yield who need to see positions and rewards in one place.", "signals": ["apy", "liquidity pools", "staking", "rewards"]},
-      {"name": "Crypto tax filers", "description": "Holders who dread tax season and want clean reports of every trade, swap and transfer.", "signals": ["tax report", "capital gains", "csv export", "cost basis"]},
-      {"name": "Multi-exchange power users", "description": "Traders spread across several exchanges and wallets who want everything synced automatically.", "signals": ["exchange sync", "api keys", "multiwallet", "dashboard"]}
+      {
+        "name": "DeFi yield farmers",
+        "description": "Users moving funds between protocols for yield who need to see positions and rewards in one place.",
+        "signals": [
+          "apy",
+          "liquidity pools",
+          "staking",
+          "rewards"
+        ]
+      },
+      {
+        "name": "Crypto tax filers",
+        "description": "Holders who dread tax season and want clean reports of every trade, swap and transfer.",
+        "signals": [
+          "tax report",
+          "capital gains",
+          "csv export",
+          "cost basis"
+        ]
+      },
+      {
+        "name": "Multi-exchange power users",
+        "description": "Traders spread across several exchanges and wallets who want everything synced automatically.",
+        "signals": [
+          "exchange sync",
+          "api keys",
+          "multiwallet",
+          "dashboard"
+        ]
+      }
     ]
-  ],
-  "creator_ranking": [
-    {"platform": "youtube", "community": "Crypto education channels (long-form)", "reason": "Medium interest with high median views; tutorials suit a video creator best.", "format": "10-15 min chart walkthrough"},
-    {"platform": "x", "community": "#CryptoTwitter trading threads", "reason": "Highest interest estimate; short clips travel well alongside threads.", "format": "60s clip plus thread"},
-    {"platform": "telegram", "community": "Trading education channels", "reason": "Medium interest; channel members respond to recurring lessons.", "format": "Weekly lesson video post"},
-    {"platform": "youtube", "community": "YouTube Shorts: quick trading tips", "reason": "Same audience as long-form, lighter commitment to discover you.", "format": "30s vertical tip"},
-    {"platform": "reddit", "community": "r/CryptoCurrency and r/CryptoMarkets", "reason": "Low interest estimate; use for feedback rather than growth.", "format": "Text post linking a lesson"}
   ],
   "launch_kit": {
     "x_post": "Tracking crypto across five tabs is over. Our #portfoliotracker gives you realtime pnl, multiwallet views and pricealerts in one dashboard. Built for people who trade, not people who babysit spreadsheets. #cryptotrading",
@@ -24,11 +71,188 @@
     "card_headline": "Every wallet. One honest number.",
     "card_subline": "Realtime P&L, multiwallet tracking and price alerts for crypto traders.",
     "video_script": [
-      {"time": "0-5s", "line": "You have coins on three exchanges and two wallets. Quick: what is your P&L today?"},
-      {"time": "5-12s", "line": "Exactly. That is why we built a portfolio tracker for crypto traders."},
-      {"time": "12-20s", "line": "Connect once and see realtime P&L, every wallet, every exchange, on one dashboard."},
-      {"time": "20-26s", "line": "Set price alerts, rebalance with confidence, and export your tax report in a click."},
-      {"time": "26-30s", "line": "Stop guessing. Start tracking. Link in the description."}
+      {
+        "time": "0-5s",
+        "line": "You have coins on three exchanges and two wallets. Quick: what is your P&L today?"
+      },
+      {
+        "time": "5-12s",
+        "line": "Exactly. That is why we built a portfolio tracker for crypto traders."
+      },
+      {
+        "time": "12-20s",
+        "line": "Connect once and see realtime P&L, every wallet, every exchange, on one dashboard."
+      },
+      {
+        "time": "20-26s",
+        "line": "Set price alerts, rebalance with confidence, and export your tax report in a click."
+      },
+      {
+        "time": "26-30s",
+        "line": "Stop guessing. Start tracking. Link in the description."
+      }
+    ]
+  },
+  "researcher_ranking": {
+    "Video creator": [
+      {
+        "platform": "youtube",
+        "community": "Crypto education channels (long-form)",
+        "reason": "Medium interest with high median views; tutorials hold attention here.",
+        "show_up": "10-15 min chart walkthrough video"
+      },
+      {
+        "platform": "x",
+        "community": "#CryptoTwitter trading threads",
+        "reason": "Highest interest estimate in the sample; fast, public conversation.",
+        "show_up": "60s clip posted with a short thread"
+      },
+      {
+        "platform": "telegram",
+        "community": "Trading education channels",
+        "reason": "Medium interest; members respond to recurring, useful posts.",
+        "show_up": "Weekly lesson video in the channel"
+      },
+      {
+        "platform": "youtube",
+        "community": "YouTube Shorts: quick trading tips",
+        "reason": "Same audience as long-form, lighter commitment to discover you.",
+        "show_up": "30s vertical tip with one clear takeaway"
+      },
+      {
+        "platform": "reddit",
+        "community": "r/CryptoCurrency and r/CryptoMarkets",
+        "reason": "Low interest estimate; better for feedback than growth.",
+        "show_up": "Short text post linking one lesson video"
+      }
+    ],
+    "Writer": [
+      {
+        "platform": "youtube",
+        "community": "Crypto education channels (long-form)",
+        "reason": "Medium interest with high median views; tutorials hold attention here.",
+        "show_up": "Long-form explainer with charts and examples"
+      },
+      {
+        "platform": "x",
+        "community": "#CryptoTwitter trading threads",
+        "reason": "Highest interest estimate in the sample; fast, public conversation.",
+        "show_up": "Thread that summarises one article, link last"
+      },
+      {
+        "platform": "telegram",
+        "community": "Trading education channels",
+        "reason": "Medium interest; members respond to recurring, useful posts.",
+        "show_up": "Weekly written lesson post, skimmable"
+      },
+      {
+        "platform": "youtube",
+        "community": "YouTube Shorts: quick trading tips",
+        "reason": "Same audience as long-form, lighter commitment to discover you.",
+        "show_up": "Script your article into a 30s tip"
+      },
+      {
+        "platform": "reddit",
+        "community": "r/CryptoCurrency and r/CryptoMarkets",
+        "reason": "Low interest estimate; better for feedback than growth.",
+        "show_up": "Detailed text post that answers a common question"
+      }
+    ],
+    "Marketer": [
+      {
+        "platform": "youtube",
+        "community": "Crypto education channels (long-form)",
+        "reason": "Medium interest with high median views; tutorials hold attention here.",
+        "show_up": "Sponsor or collaborate with mid-size education channels"
+      },
+      {
+        "platform": "x",
+        "community": "#CryptoTwitter trading threads",
+        "reason": "Highest interest estimate in the sample; fast, public conversation.",
+        "show_up": "Reply to trending threads with a useful visual"
+      },
+      {
+        "platform": "telegram",
+        "community": "Trading education channels",
+        "reason": "Medium interest; members respond to recurring, useful posts.",
+        "show_up": "Partner with channel admins for a pinned resource"
+      },
+      {
+        "platform": "youtube",
+        "community": "YouTube Shorts: quick trading tips",
+        "reason": "Same audience as long-form, lighter commitment to discover you.",
+        "show_up": "Test short paid boosts on the best-performing tip"
+      },
+      {
+        "platform": "reddit",
+        "community": "r/CryptoCurrency and r/CryptoMarkets",
+        "reason": "Low interest estimate; better for feedback than growth.",
+        "show_up": "Run an AMA, follow each subreddit's self-promo rules"
+      }
+    ],
+    "Sales rep": [
+      {
+        "platform": "youtube",
+        "community": "Crypto education channels (long-form)",
+        "reason": "Medium interest with high median views; tutorials hold attention here.",
+        "show_up": "Comment helpfully under tutorials, then invite viewers to a demo"
+      },
+      {
+        "platform": "x",
+        "community": "#CryptoTwitter trading threads",
+        "reason": "Highest interest estimate in the sample; fast, public conversation.",
+        "show_up": "Join threads with answers first; DM only people who ask"
+      },
+      {
+        "platform": "telegram",
+        "community": "Trading education channels",
+        "reason": "Medium interest; members respond to recurring, useful posts.",
+        "show_up": "Introduce yourself to admins before sharing an offer"
+      },
+      {
+        "platform": "youtube",
+        "community": "YouTube Shorts: quick trading tips",
+        "reason": "Same audience as long-form, lighter commitment to discover you.",
+        "show_up": "Reply to questions in comments, link a free trial only on request"
+      },
+      {
+        "platform": "reddit",
+        "community": "r/CryptoCurrency and r/CryptoMarkets",
+        "reason": "Low interest estimate; better for feedback than growth.",
+        "show_up": "Answer questions in weekly threads; offer a call when invited"
+      }
+    ],
+    "Other": [
+      {
+        "platform": "youtube",
+        "community": "Crypto education channels (long-form)",
+        "reason": "Medium interest with high median views; tutorials hold attention here.",
+        "show_up": "Share one genuinely useful long-form piece"
+      },
+      {
+        "platform": "x",
+        "community": "#CryptoTwitter trading threads",
+        "reason": "Highest interest estimate in the sample; fast, public conversation.",
+        "show_up": "Join the conversation with short, specific replies"
+      },
+      {
+        "platform": "telegram",
+        "community": "Trading education channels",
+        "reason": "Medium interest; members respond to recurring, useful posts.",
+        "show_up": "Post a recurring, practical update"
+      },
+      {
+        "platform": "youtube",
+        "community": "YouTube Shorts: quick trading tips",
+        "reason": "Same audience as long-form, lighter commitment to discover you.",
+        "show_up": "Try a short, easy-to-watch format"
+      },
+      {
+        "platform": "reddit",
+        "community": "r/CryptoCurrency and r/CryptoMarkets",
+        "reason": "Low interest estimate; better for feedback than growth.",
+        "show_up": "Ask for feedback where the rules allow it"
+      }
     ]
   }
 }

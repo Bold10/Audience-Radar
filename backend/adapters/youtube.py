@@ -23,7 +23,7 @@ class YouTubeLiveAdapter(_YouTubeMeta, LiveAdapter):
     credentials_env = ("YOUTUBE_API_KEY",)
     sample_key = "youtube_max_videos"
 
-    async def fetch(self, query: str, audience: str) -> list[dict]:
+    async def fetch(self, query: str, audience: str, limit: int | None = None) -> list[dict]:
         key = os.environ["YOUTUBE_API_KEY"]
         limit = min(50, load_settings()["live"]["youtube_max_videos"])
         after = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")

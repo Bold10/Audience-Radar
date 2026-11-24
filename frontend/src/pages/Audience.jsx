@@ -4,7 +4,8 @@ import { ArrowRight, Check, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
-import { api } from "@/lib/api";
+import { api, clientId } from "@/lib/api";
+import { AiSourceTag } from "@/components/Interest";
 import { useFlow } from "@/lib/flow";
 
 export default function AudiencePage() {
@@ -15,7 +16,7 @@ export default function AudiencePage() {
   const fetchOptions = useCallback(async (round, seen) => {
     setLoading(true);
     try {
-      const { data } = await api.post("/audiences", { description: flow.description, mode: flow.mode, role: flow.role, exclude: seen, round });
+      const { data } = await api.post("/audiences", { client_id: clientId(), description: flow.description, mode: flow.mode, role: flow.role, exclude: seen, round });
       update({ options: data.options, optionsSource: data.source, round, seen: [...seen, ...data.options.map((o) => o.name)], audience: null });
     } catch {
       toast.error("Could not load audience suggestions. Try again.");
@@ -33,11 +34,10 @@ export default function AudiencePage() {
   return (
     <Page testid="audience-page">
       <Stepper current={1} />
-      <p className="eyebrow">{flow.mode === "launch" ? "Launching" : `Creator · ${flow.role}`}</p>
+      <p className="eyebrow">{flow.mode === "launch" ? "Launching" : `Researcher · ${flow.role}`}</p>
       <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">Who is this really for?</h1>
-      <p className="mt-4 max-w-2xl text-base text-soft md:text-lg">Pick the audience that fits “{flow.description}” best.
-        {flow.optionsSource && <span className="ml-1 text-sm" data-testid="audience-source-note">({flow.optionsSource === "ai" ? "Suggested by AI" : "Sample suggestions"})</span>}
-      </p>
+      <p className="mt-4 max-w-2xl text-base text-soft md:text-lg">Pick the audience that fits “{flow.description}” best.</p>
+      {flow.optionsSource && !loading && <div className="mt-3"><AiSourceTag source={flow.optionsSource} testid="audience-source-note" /></div>}
       {loading ? (
         <div className="mt-12 flex items-center gap-3 text-soft" data-testid="audience-loading"><Loader2 className="animate-spin" /> Asking the model for 3 audiences…</div>
       ) : (

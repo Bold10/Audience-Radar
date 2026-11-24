@@ -1,92 +1,143 @@
-# Audience Radar: Share Links, Email Code Sign-up, Keyword Copy and Editable Card
+# Audience Radar: Final Update (Researcher Mode, Live Gemini, Live X, Caps, Docs)
 
-This update adds four things. Any run can be shared as a read-only link. Visitors can sign up with a Gmail address and a one-time code. The launch kit gets a keywords-only section for writing your own posts, and the graphic card can be downloaded as an editable SVG.
+Audience Radar estimates where an audience is paying attention (X, Telegram, Reddit, YouTube) and writes a launch kit for that place.
+This update renames Creator mode to Researcher, connects Gemini and X with strict caps, and adds the repository docs. The name, design, colours and logo do not change.
 
 ## Who it's for
-- **Run owners**: makers and creators who want to show their radar and launch kit to a team.
-- **Teammates**: people who open a shared link and only need to read, copy and download.
-- **Returning users**: people who want their runs to follow them to any device.
+- **Product launchers** deciding where to announce a product.
+- **Researchers**: video creators, writers, marketers, sales reps and others who want to know which platforms and communities to show up in.
 
-## Core features and experience
+## Already in place (kept, with small adjustments only)
+- **Home page motion**: pulsing radar rings, the rotating sweep with a trailing wedge, and 7 fading blips. It uses CSS variables, turns off for reduced motion and keeps contrast. No change.
+- **Share links**: create, open read-only, stop sharing. They are hidden from search engines and show no payment details. No change.
+- **Keywords block** with per-keyword copy, a "Copied" state and "Copy all". The **editable SVG card** is also included in the full-kit zip. No change.
+- **Optional sign-in with any email** using an emailed one-time code. The Gmail-only rule is already removed. There is no "see who opened a link" feature, and there are no team spaces or comments. No change.
+- **One callModel(task, input) function**, prompts in separate files, JSON answers validated, sample fallbacks. It gets adjusted (see Live Gemini).
+- **Mock payment window**. It gets moved behind a payment adapter.
+- **Live X module on the official API**. It gets adjusted: post count, no author data by default, and caps.
+- **Hot keywords in plain server code**. Two changes: the AI clean-up step is removed, and the ranking uses raw engagement.
+- **Telegram, Reddit and YouTube on sample data.** No change.
 
-### Shareable radar link
-- A **"Share"** button on the Results page and on the Launch kit page.
-- It creates a private, hard-to-guess link and copies it to the clipboard. The link is also shown so it can be copied by hand.
-- **Anyone with the link** can open it without signing up.
-- The shared page is **read-only** and shows the full run:
-  - The results: radar rows or creator ranking, plus hot keywords.
-  - The launch kit: X post, Telegram message, graphic card and video script.
-- Viewers can still use Copy and Download on each kit item, including the full kit.
-- Viewers cannot pay, refine, or regenerate anything. They do not see payment details or who made the run.
-- The "Demo data" badge, "Estimate" labels and sample sizes appear on the shared page just as they do for the owner.
-- The owner can **stop sharing**, which turns the link off. Sharing again creates a new link.
-- Shared pages carry a small "Shared from Audience Radar" note with a "Start your own run" button.
+## Missing or different (built now)
 
-### Sign up with a Gmail code
-- **"Sign up"** and **"Sign in"** buttons in the header.
-- You enter a Gmail address and receive a **one-time code** by email. Enter the code and you are signed in. There is no password and no "Continue with Google" button yet.
-- **Only Gmail addresses** (@gmail.com and @googlemail.com) are accepted. Other addresses get a clear message explaining that only Gmail is supported for now.
-- **Signing up is optional.** Runs work exactly as they do today without an account.
-- When you are signed in:
-  - New runs are saved to your account.
-  - Runs already made in this browser are added to your account automatically on first sign-in.
-  - History "My runs" shows your account's runs on any device.
-- The header shows a small account menu with your email and **Sign out**.
+### 1. Researcher mode
+- "Creator" becomes "Researcher" everywhere: the mode card, landing page, how it works, the two modes, FAQ, roadmap, results labels, History, shared pages and sample data. Past runs saved as Creator show as Researcher. Job titles such as "Video creator" stay.
+- **Roles**: Video creator, Writer, Marketer, Sales rep, Other. "Other" opens a labelled free-text field, max 40 characters.
+- **Results title**: "Best places to reach your audience". This is a ranked list of platforms and communities only, never individual people. Each row shows:
+  - an interest label (High / Medium / Low) with a 3-bar icon, the sample size and "Estimate";
+  - a one-line reason;
+  - **"Best way to show up"**, worded for the role:
+    - Video creator: a video format.
+    - Writer: an article format.
+    - Marketer: a channel tactic.
+    - Sales rep: how to join the conversation and start outreach.
+    - Other: general advice based on the typed role.
+- A **"Copy summary"** button copies the ranked list as plain text.
 
-### Keywords-only section in the launch kit
-- Directly under the X post: a **"Hot keywords"** block showing only the 8 keywords as chips.
-- **Click a chip** to copy that single keyword. A brief "Copied" confirmation appears.
-- A **"Copy all keywords"** button copies them all on one line, separated by spaces, so they can be pasted into your own post.
-- The block contains keywords only, never post text, which keeps the existing rule.
+### 2. Live Gemini (server only)
+- Gemini runs three tasks:
+  - the audience wizard: 3 options, plus "None of these, refine" for 3 new ones;
+  - the Researcher ranking;
+  - the launch kit: an X post using the hot keywords, a Telegram message, graphic card text and a 30-second video script.
+- The model and key come from **GEMINI_API_KEY** and **GEMINI_MODEL**. If GEMINI_API_KEY is empty, every AI step uses sample answers labelled "Sample". The Emergent LLM key is no longer used.
+- User text is treated as data, not instructions, and capped at 1,000 characters (enforced on screen and on the server).
+- **Limits**: 20 AI requests per browser per day. Identical requests are answered from a cache and do not count. Over the limit, the step uses sample answers.
+- Every AI output carries a **"Live AI"** or **"Sample"** label, plus "AI-generated. Check before posting."
+- Gemini receives only the description, the chosen audience, the role, the hot keywords and aggregate numbers such as labels and sample sizes. It never receives post text.
 
-### Editable graphic card (SVG)
-- Next to the current download, a new **"Download editable SVG"** button on the graphic card.
-- The SVG keeps the headline, subline and keyword chips as **real, editable text and shapes**, with the logo mark as a separate image layer.
-- It opens in Figma, Illustrator, Inkscape or Canva for personal edits.
-- The PNG download stays as it is.
-- The full-kit zip includes the SVG as well as the PNG.
+### 3. Hot keywords without AI
+- Engagement = likes + reposts + replies + quotes.
+- The top 20% of posts by engagement are compared with the rest. The 8 most over-represented words or hashtags are returned.
+- Raw post text is never stored and never sent to Gemini. Only the keywords are kept.
+- **X_INCLUDE_AUTHOR_METRICS** (default false):
+  - false: no author data is requested from X, and posts are ranked by raw engagement.
+  - true: author follower counts are requested, engagement is divided by followers, and X_COST_PER_AUTHOR_USD (default $0.01) per post is added to the cost estimate.
+
+### 4. Live X data and post count
+- On Sources and cost, under X: a labelled number field **"Posts to search on X"**, with 44px − and + buttons. It goes from 50 to MAX_POSTS_PER_RUN (default 100) in steps of 50, and defaults to 50.
+- The cost box updates live: N posts × PRICE_PER_POST_USD (default $0.01), $0 for free sources, the author add-on when enabled, and the total. The server recalculates and validates the number.
+- With **X_BEARER_TOKEN** set, recent posts come from the official X API.
+- **Caps on the server**:
+  - MAX_POSTS_PER_RUN per run;
+  - DAILY_X_POST_CAP (default 500) X posts per day for the whole app.
+  - A request above the per-run limit is refused with a clear message on the Sources screen.
+- **Fallbacks**: X uses sample data and shows **"Showing sample result"** in each of these cases:
+  - the key is missing;
+  - credits are used up;
+  - the daily cap is reached;
+  - the call fails.
+- Each source is labelled **"Live data"** or **"Demo data"**.
+- X_COST_PER_POST_USD (default $0.005) records the X API cost for reference. Customers pay PRICE_PER_POST_USD.
+
+### 5. Payment and LinkedIn
+- Payment stays a mock window behind a payment adapter. **PAYMENT_MODE=mock** is the only supported value. Solana USDC can be added later without changing screens.
+- **RECEIVER_WALLET_ADDRESS** and **SOLANA_RPC_URL** are added, left empty and unused.
+- **LinkedIn** appears on Sources as a disabled row tagged "Coming soon". It has no data and is not selectable. It is also added to the roadmap section and the Roadmap page.
+
+### 6. Secrets, docs, GitHub
+- These variables are defined on the server only, with safe defaults and no real values: GEMINI_API_KEY, GEMINI_MODEL, X_BEARER_TOKEN, X_INCLUDE_AUTHOR_METRICS, X_COST_PER_POST_USD, X_COST_PER_AUTHOR_USD, PRICE_PER_POST_USD, MAX_POSTS_PER_RUN, DAILY_X_POST_CAP, PAYMENT_MODE, RECEIVER_WALLET_ADDRESS, SOLANA_RPC_URL.
+- Keys never reach the browser, the logs or the repository.
+- Every file is searched for hard-coded secrets, and any found are removed.
+- The repository gets four new files:
+  - **.gitignore**: excludes .env, node_modules and build output.
+  - **.env.example**: variable names only.
+  - **LICENSE**: MIT.
+  - **README**, covering:
+    - the description;
+    - features (Launch mode and Researcher mode);
+    - "How AI is used": each task, the model and its prompt file;
+    - "Demo mode": the sample data and the mocked payment;
+    - setup and run steps.
+- **GitHub**: this agent cannot push to GitHub directly. The project is pushed with the platform's **"Save to GitHub"** button in the chat. Choose a new public repository named `audience-radar`, branch `main`, and the message "Audience Radar demo". The final summary repeats these exact steps.
 
 ## User flow
-1. A visitor completes a run as today, signed in or not.
-2. On Results or the Launch kit, they click **Share**, and the link is copied.
-3. A teammate opens the link and sees the read-only results and kit. They copy keywords, download the card or the full kit.
-4. The owner can click **Stop sharing** at any time.
-5. Optionally, a visitor clicks **Sign up**, enters a Gmail address, types the emailed code and is signed in. Their earlier browser runs now appear under History on any device.
-6. In the launch kit, the user copies single keywords or all of them from the block under the X post. They download the editable SVG card for their own design work.
+1. Landing page, then "Start a run".
+2. Describe the product or niche (up to 1,000 characters). Choose Launch or Researcher mode. In Researcher mode, pick a role or type one.
+3. Pick one of the 3 audience cards, or refine to get 3 new ones.
+4. Pick sources and set "Posts to search on X". The cost updates live. LinkedIn shows as "Coming soon".
+5. Mock payment, then confirmation.
+6. Results:
+   - Launch mode: radar rows and hot keywords.
+   - Researcher mode: "Best places to reach your audience" with "Copy summary".
+7. The launch kit, then copy, download or share.
+8. History.
 
 ## UI/UX feel
-- The same warm, editorial look, colours, fonts and hover effects as now, in light and dark mode, on mobile and desktop.
-- Shared pages look like the owner's view without the action buttons that change things. A thin "Read-only shared view" bar sits at the top.
-- The sign-in and sign-up screens use the app's colours and fonts, centred, and readable in both themes.
-- Keyword chips lift slightly on hover, show a copy icon, and confirm with a short "Copied" state.
-- All new buttons are at least 44px tall, labelled, and usable by keyboard.
+- The same name, logo, colours, fonts, hover effects and hero motion, in light and dark mode, on mobile and desktop.
+- New elements follow the current style:
+  - the post-count field with its +/− buttons;
+  - the role free-text field;
+  - the "Coming soon" row;
+  - the "Live AI" / "Sample" and "Live data" / "Demo data" labels;
+  - the "AI-generated. Check before posting." note.
+- All new buttons are at least 44px tall and every field has a label. Fallbacks appear as quiet labels, never as error screens.
 
 ## Implementation phases
-
 **Phase 1 — MVP (built now)**
-- Share links: create, open read-only, stop sharing.
-- Optional Gmail-only sign-up and sign-in with an emailed one-time code. Runs are saved to the account, and existing browser runs are added on first sign-in.
-- The keywords-only block with per-keyword copy and "Copy all".
-- The editable SVG export of the graphic card, also included in the full-kit zip.
+- Everything under "Missing or different" above: Researcher mode, live Gemini with its limits, keyword changes, live X with the post count and caps, the payment adapter, the LinkedIn placeholder, the variables, the secrets sweep and the docs.
 
 **Phase 2**
-- "Continue with Google" sign-in.
-- See who opened a shared link, and when.
-- Optional expiry date on share links.
+- Real Solana USDC payment through the payment adapter.
+- A live LinkedIn source on an official API.
+- Threshold tuning based on real X data.
 
 **Phase 3**
-- Team spaces where several accounts see the same runs.
-- Comments on a shared run.
+- Live Telegram, Reddit and YouTube sources.
+- Prepaid credits.
 
 ## Assumptions
-- **Email code sign-in** uses the platform's managed sign-in service, so codes are sent for you and no email setup is needed.
-- **Gmail-only rule**: @gmail.com and @googlemail.com are allowed. A non-Gmail address may still receive a code, but the app refuses to use that account and asks for a Gmail address instead.
-- **Earlier runs**: runs made in the same browser before signing up are moved into the account automatically. Runs from other browsers stay where they are.
-- **History tabs**: "My runs" shows account runs when signed in, and this browser's runs when not. "All runs" stays as it is today.
-- **Sharing who**: any run's owner can share it. The owner is the account that made it, or the same browser for runs made without an account. Unpaid runs cannot be shared.
-- **Launch kit on sharing**: if the kit has not been written yet when the owner shares, it is written at that moment. Teammates opening the link never trigger new AI writing.
-- **Share link format**: one active link per run. Stopping and re-sharing makes a new link, and the old one stops working.
-- **Shared page privacy**: shared pages are hidden from search engines and do not show payment transaction details.
-- **SVG fonts**: the SVG names Space Grotesk and Inter. If those fonts are not installed on the editing computer, the design tool substitutes a similar font until they are added.
-- **Only the SVG was chosen**, so the card stays at its current 1200×630 size. No extra square or story sizes and no high-resolution PNG are added.
-- **Live data keys** for X, Reddit and YouTube remain unset, so those sources stay on sample data. This update does not change that.
+- **No Gemini key**: every AI step uses sample answers labelled "Sample". The Emergent LLM key is no longer used.
+- **Daily X cap**: shared by the whole app. Once 500 posts have been fetched in a day (UTC), every run uses sample X data until the next day.
+- **Per-browser AI limit**: counted per browser, using its browser ID together with its network address, and resets daily (UTC). Cached answers do not count.
+- **Cache**: identical requests (same task and same input) reuse the earlier answer for 24 hours.
+- **Pricing**:
+  - The customer pays N × PRICE_PER_POST_USD ($0.01). The default 50 posts costs $0.50, and 100 posts costs $1.00.
+  - The author add-on, when enabled, is X_COST_PER_AUTHOR_USD per post searched.
+  - The landing-page pricing table is updated to these numbers.
+- **Demo X sample**: without a key, X uses the first N posts of the bundled sample, so the sample size matches the chosen number. X still shows High for the crypto trader example.
+- **Keyword ranking**: live X data defaults to raw engagement, because author data is off by default. Bundled sample data keeps its current method.
+- **AI keyword step**: the old AI clean-up of keywords is removed. Keywords now come only from server code.
+- **Past runs**: runs saved as "Creator" are shown as "Researcher". Old "Designer" roles are shown as they were saved.
+- **"Copy summary"** copies the title, the description and each ranked row (platform, label, sample size, "Estimate", reason, best way to show up) as plain text.
+- **Over-limit post count**: the server refuses a request above MAX_POSTS_PER_RUN, and the Sources screen explains the limit. The daily cap never blocks a run; it switches X to sample data.
+- **Your Gemini key**: you add GEMINI_API_KEY (and optionally X_BEARER_TOKEN) through the secure key card at the end of the build. Until then, everything runs on sample data.

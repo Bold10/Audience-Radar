@@ -18,7 +18,7 @@ class SourceAdapter(ABC):
     unit: str
 
     @abstractmethod
-    async def fetch(self, query: str, audience: str) -> list[dict]:
+    async def fetch(self, query: str, audience: str, limit: int | None = None) -> list[dict]:
         ...
 
     @abstractmethod
@@ -31,14 +31,15 @@ class SourceAdapter(ABC):
 
 
 class DemoAdapter(SourceAdapter):
-    """Reads bundled JSON sample files."""
+    """Reads bundled JSON sample files; `limit` takes the first N items."""
     live = False
 
     def _items(self) -> list[dict]:
         return json.loads((SAMPLE_DIR / f"{self.id}.json").read_text())["items"]
 
-    async def fetch(self, query: str, audience: str) -> list[dict]:
-        return self._items()
+    async def fetch(self, query: str, audience: str, limit: int | None = None) -> list[dict]:
+        items = self._items()
+        return items[:limit] if limit else items
 
     def sample_size(self) -> int:
         return len(self._items())
@@ -56,7 +57,7 @@ class LiveAdapter(SourceAdapter):
     def sample_size(self) -> int:
         return load_settings()["live"][self.sample_key]
 
-    async def fetch(self, query: str, audience: str) -> list[dict]:
+    async def fetch(self, query: str, audience: str, limit: int | None = None) -> list[dict]:
         raise NotImplementedError(f"Live {self.name} adapter is not available yet.")
 
 

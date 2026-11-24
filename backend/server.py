@@ -22,8 +22,11 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 from adapters import data_mode, demo_adapters, get_adapters  # noqa: E402
+from adapters.x import include_author_metrics  # noqa: E402
 from model_layer import ai_available, call_model, model_config  # noqa: E402
-from scoring import interest, keyword_candidates  # noqa: E402
+from model_layer import init as init_model_layer  # noqa: E402
+from payments import get_payment_adapter, payment_mode  # noqa: E402
+from scoring import hot_keywords, interest  # noqa: E402
 from settings import load_settings  # noqa: E402
 
 try:  # launched as `backend.server` (the default)
@@ -87,6 +90,10 @@ INDEXES: dict[str, list[IndexModel]] = {
                    partialFilterExpression={"share_token": {"$type": "string"}}),
     ],
     "users": [IndexModel([("user_id", ASCENDING)], name="user_id", unique=True)],
+    "ai_cache": [IndexModel([("hash", ASCENDING)], name="hash", unique=True),
+                 IndexModel([("created_at", ASCENDING)], name="ttl", expireAfterSeconds=86400)],
+    "ai_usage": [IndexModel([("key", ASCENDING), ("day", ASCENDING)], name="key_day", unique=True)],
+    "x_usage": [IndexModel([("day", ASCENDING)], name="day", unique=True)],
 }
 
 
@@ -102,34 +109,63 @@ async def ensure_indexes() -> None:
 app = FastAPI()
 api = APIRouter(prefix="/api")
 SourceId = Literal["x", "telegram", "reddit", "youtube"]
-Mode = Literal["launch", "creator"]
+Mode = Literal["launch", "researcher"]
+MAX_TEXT = 1000
+
+
+def is_researcher(run: dict) -> bool:
+    return run["mode"] in ("researcher", "creator")  # "creator" = runs saved before the rename
 
 
 class AudienceIn(BaseModel):
-    description: str = Field(min_length=3, max_length=500)
+    client_id: Optional[str] = Field(default=None, max_length=64)
+    description: str = Field(min_length=3, max_length=MAX_TEXT)
     mode: Mode
-    role: Optional[str] = None
-    exclude: List[str] = Field(default_factory=list)
+    role: Optional[str] = Field(default=None, max_length=40)
+    exclude: List[str] = Field(default_factory=list, max_length=30)
     round: int = 0
 
 
 class Audience(BaseModel):
-    name: str
-    description: str
-    signals: List[str] = Field(default_factory=list)
+    name: str = Field(max_length=80)
+    description: str = Field(max_length=400)
+    signals: List[str] = Field(default_factory=list, max_length=6)
 
 
 class RunIn(BaseModel):
     client_id: str = Field(min_length=6, max_length=64)
-    description: str = Field(min_length=3, max_length=500)
+    description: str = Field(min_length=3, max_length=MAX_TEXT)
     mode: Mode
-    role: Optional[str] = None
+    role: Optional[str] = Field(default=None, max_length=40)
     audience: Audience
     sources: List[SourceId] = Field(min_length=1)
+    x_posts: int = 50
+
+
+class QuoteIn(BaseModel):
+    sources: List[SourceId] = Field(min_length=1)
+    x_posts: int = 50
 
 
 class PayIn(BaseModel):
     asset: str = "USDC"
+
+
+def _env_num(name: str, default: float) -> float:
+    return float(os.environ.get(name) or default)
+
+
+def pricing() -> dict:
+    s = load_settings()["pricing"]
+    return {"price_per_post": _env_num("PRICE_PER_POST_USD", 0.01), "include_author_metrics": include_author_metrics(),
+            "author_cost_per_post": _env_num("X_COST_PER_AUTHOR_USD", 0.01),
+            "min_posts": 50, "step": 50, "default_posts": 50, "max_posts": int(_env_num("MAX_POSTS_PER_RUN", 100)),
+            "currency": s["currency"], "crypto_assets": s["crypto_assets"]}
+
+
+def requester_key(request: Request, client_id: Optional[str]) -> str:
+    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
+    return f"{client_id or 'anon'}|{ip}"
 
 
 def is_sample(desc: str) -> bool:
@@ -137,18 +173,41 @@ def is_sample(desc: str) -> bool:
     return "portfolio tracker" in d and "crypto" in d
 
 
-def quote(sources: list[str]) -> dict:
-    s = load_settings()
-    price = s["pricing"]["x_price_per_post"]
+def check_posts(x_posts: int, p: dict) -> None:
+    if x_posts > p["max_posts"]:
+        raise HTTPException(422, f"You can search up to {p['max_posts']} X posts per run.")
+    if x_posts < p["min_posts"] or x_posts % p["step"]:
+        raise HTTPException(422, f"Choose {p['min_posts']} to {p['max_posts']} X posts, in steps of {p['step']}.")
+
+
+def quote(sources: list[str], x_posts: int) -> dict:
+    p = pricing()
+    if "x" in sources:
+        check_posts(x_posts, p)
     adapters = get_adapters()
     lines = []
     for sid in sources:
         a = adapters[sid]
-        size = a.sample_size()
-        cost = round(size * price, 4) if a.paid else 0.0
+        size = x_posts if sid == "x" else a.sample_size()
+        price = p["price_per_post"] if a.paid else 0.0
         lines.append({"source": sid, "name": a.name, "paid": a.paid, "sample_size": size, "unit": a.unit,
-                      "unit_price": price if a.paid else 0.0, "cost": cost})
-    return {"lines": lines, "total": round(sum(line["cost"] for line in lines), 2), "currency": s["pricing"]["currency"]}
+                      "unit_price": price, "cost": round(size * price, 4)})
+        if sid == "x" and p["include_author_metrics"]:
+            lines.append({"source": "x_authors", "name": "X author data", "paid": True, "sample_size": size, "unit": "posts",
+                          "unit_price": p["author_cost_per_post"], "cost": round(size * p["author_cost_per_post"], 4)})
+    return {"lines": lines, "total": round(sum(line["cost"] for line in lines), 2), "currency": p["currency"]}
+
+
+async def reserve_x_posts(n: int) -> bool:
+    """App-wide daily X post cap (UTC day)."""
+    cap, day = int(_env_num("DAILY_X_POST_CAP", 500)), datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    await db.x_usage.update_one({"day": day}, {"$setOnInsert": {"posts": 0}}, upsert=True)
+    res = await db.x_usage.update_one({"day": day, "posts": {"$lte": cap - n}}, {"$inc": {"posts": n}})
+    return res.modified_count == 1
+
+
+async def release_x_posts(n: int) -> None:
+    await db.x_usage.update_one({"day": datetime.now(timezone.utc).strftime("%Y-%m-%d")}, {"$inc": {"posts": -n}})
 
 
 async def get_run(run_id: str) -> dict:
@@ -158,47 +217,57 @@ async def get_run(run_id: str) -> dict:
     return run
 
 
-async def compute_results(run: dict) -> dict:
+X_FALLBACK_REASONS = {"missing_key": "No X key set", "credits": "X credits used up",
+                      "daily_cap": "Daily X limit reached", "error": "X request failed"}
+
+
+async def fetch_source(sid: str, a, run: dict) -> tuple[object, list[dict], Optional[str]]:
+    """Returns (adapter used, items, fallback reason). Any live problem falls back to sample data."""
+    limit = run.get("x_posts", 50) if sid == "x" else None
+    reason = "missing_key" if sid == "x" and not a.live else None
+    if a.live and sid == "x" and not await reserve_x_posts(limit):
+        reason = "daily_cap"
+    elif a.live:
+        try:
+            return a, await a.fetch(run["description"], run["audience"]["name"], limit), None
+        except Exception as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            logging.getLogger(__name__).warning("Live %s fetch failed (%s), using sample data", sid, status or type(exc).__name__)
+            reason = "credits" if status in (402, 429) else "error"
+            if sid == "x":
+                await release_x_posts(limit)
+    demo = demo_adapters()[sid]
+    return demo, await demo.fetch(run["description"], run["audience"]["name"], limit), reason if sid == "x" else None
+
+
+async def compute_results(run: dict, requester: str) -> dict:
     s = load_settings()
     adapters = get_adapters()
-    rows, all_items = [], []
+    rows, groups = [], []
     for sid in run["sources"]:
-        a = adapters[sid]
-        live = a.live
-        try:
-            items = await a.fetch(run["description"], run["audience"]["name"])
-        except Exception as exc:
-            logging.getLogger(__name__).warning("Live %s fetch failed, using sample data: %s", sid, exc)
-            a, live = demo_adapters()[sid], False
-            items = await a.fetch(run["description"], run["audience"]["name"])
-        all_items += items
-        rows.append({"id": sid, "name": a.name, "paid": a.paid, "unit": a.unit, "live": live,
-                     **interest(sid, items, s["interest"], live)})
-    count = s["keywords"]["count"]
-    candidates = keyword_candidates(all_items, s["keywords"])
-    creator = run["mode"] == "creator"
-    picked, ranked = await asyncio.gather(
-        call_model("keyword_extraction", {"niche": run["description"], "audience": run["audience"]["name"],
-                                          "candidates": candidates}),
-        call_model("creator_ranking", {
-            "niche": run["description"], "role": run.get("role"), "audience": run["audience"],
-            "platforms": [{"platform": r["id"], "interest": r["label"], "sample_size": r["sample_size"]} for r in rows]})
-        if creator else asyncio.sleep(0),
-    )
-    keywords = [k for k in (picked or {}).get("keywords", []) if k in candidates][:count]
-    ai_used = bool(keywords)
-    keywords += [c for c in candidates if c not in keywords][: count - len(keywords)]
-    results = {"sources": sorted(rows, key=lambda r: r["score"], reverse=True), "keywords": keywords}
-    if creator:
+        a, items, reason = await fetch_source(sid, adapters[sid], run)
+        scale = 1.0 if a.live else len(items) / max(a.sample_size(), 1)
+        groups.append(items)
+        rows.append({"id": sid, "name": a.name, "paid": a.paid, "unit": a.unit, "live": a.live,
+                     "fallback": X_FALLBACK_REASONS.get(reason) if reason else None,
+                     **interest(sid, items, s["interest"], a.live, scale)})
+    results = {"sources": sorted(rows, key=lambda r: r["score"], reverse=True), "keywords": hot_keywords(groups, s["keywords"])}
+    if is_researcher(run):
+        role = run.get("role") or "Other"
         by_id = {r["id"]: r for r in rows}
-        items = (ranked or {}).get("items") or FALLBACKS["creator_ranking"]
-        ai_used = ai_used or bool(ranked)
-        results["creator_ranking"] = [
+        ranked, source = await call_model("researcher_ranking", {
+            "niche": run["description"], "role": role,
+            "audience": {"name": run["audience"]["name"], "description": run["audience"]["description"]},
+            "platforms": [{"platform": r["id"], "interest": r["label"], "sample_size": r["sample_size"], "unit": r["unit"]}
+                          for r in rows]}, requester)
+        fallback = FALLBACKS["researcher_ranking"]
+        items = (ranked or {}).get("items") or fallback.get(role, fallback["Other"])
+        results["ranking_source"] = source if ranked else "sample"
+        results["researcher_ranking"] = [
             {**it, "name": by_id[it["platform"]]["name"], "label": by_id[it["platform"]]["label"],
              "sample_size": by_id[it["platform"]]["sample_size"], "unit": by_id[it["platform"]]["unit"],
              "live": by_id[it["platform"]]["live"]}
             for it in items if it["platform"] in by_id]
-    results["ai_used"] = ai_used
     results["demo"] = not all(r["live"] for r in rows)
     return results
 
@@ -213,35 +282,41 @@ async def get_config():
     s = load_settings()
     cfg = model_config()
     sources = [a.meta() for a in get_adapters().values()]
-    return {"demo_mode": not all(m["live"] for m in sources), "data_mode": data_mode(), "pricing": s["pricing"],
-            "thresholds": s["interest"]["thresholds"], "sources": sources,
-            "ai": {"enabled": ai_available(), "provider": cfg["provider"], "model": cfg["model"]},
-            "sample_niche": SAMPLE_NICHE}
+    return {"demo_mode": not all(m["live"] for m in sources), "data_mode": data_mode(), "pricing": pricing(),
+            "thresholds": s["interest"]["thresholds"], "sources": sources, "payment_mode": payment_mode(),
+            "ai": {"enabled": ai_available(), "provider": cfg["provider"], "model": cfg["model"], "daily_limit": cfg["daily_limit"]},
+            "max_text": MAX_TEXT, "sample_niche": SAMPLE_NICHE}
 
 
 @api.post("/audiences")
-async def audiences(body: AudienceIn):
+async def audiences(body: AudienceIn, request: Request):
     sets = FALLBACKS["audience_sets"]
     if body.round == 0 and is_sample(body.description):
         return {"options": sets[0], "source": "sample"}
-    result = await call_model("audience_options", body.model_dump(include={"description", "mode", "role", "exclude"}))
+    result, source = await call_model("audience_options", body.model_dump(include={"description", "mode", "role", "exclude"}),
+                                      requester_key(request, body.client_id))
     if result:
-        return {"options": result["options"], "source": "ai"}
+        return {"options": result["options"], "source": source}
     return {"options": sets[body.round % len(sets)], "source": "sample"}
 
 
 @api.post("/quote")
-async def get_quote(sources: List[SourceId]):
-    return quote(sources)
+async def get_quote(body: QuoteIn):
+    return quote(body.sources, body.x_posts)
 
 
 @api.post("/runs")
 async def create_run(body: RunIn, acct: Optional[dict] = Depends(optional_account)):
+    cost = quote(body.sources, body.x_posts)
+    x_api_cost = body.x_posts * (_env_num("X_COST_PER_POST_USD", 0.005)
+                                 + (_env_num("X_COST_PER_AUTHOR_USD", 0.01) if include_author_metrics() else 0))
     run = {**body.model_dump(), "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat(),
-           "status": "pending_payment", "cost": quote(body.sources), "demo": not all(get_adapters()[s].live for s in body.sources),
-           "payment": None, "results": None, "kit": None, "user_id": acct["user_id"] if acct else None}
+           "status": "pending_payment", "cost": cost, "demo": not all(get_adapters()[s].live for s in body.sources),
+           "payment": None, "results": None, "kit": None, "user_id": acct["user_id"] if acct else None,
+           "x_api_cost_usd": round(x_api_cost, 4) if "x" in body.sources else 0.0}
     await db.runs.insert_one(dict(run))
-    run.pop("user_id")
+    for k in ("user_id", "x_api_cost_usd"):
+        run.pop(k)
     return run
 
 
@@ -282,37 +357,38 @@ async def claim_runs(body: ClaimIn, acct: Optional[dict] = Depends(optional_acco
 @api.get("/runs/{run_id}")
 async def read_run(run_id: str):
     run = await get_run(run_id)
-    for k in ("client_id", "user_id", "share_token"):
+    for k in ("client_id", "user_id", "share_token", "x_api_cost_usd"):
         run.pop(k, None)
     return run
 
 
 @api.post("/runs/{run_id}/pay")
-async def pay_run(run_id: str, body: PayIn):
+async def pay_run(run_id: str, body: PayIn, request: Request):
     run = await get_run(run_id)
     if run["status"] == "paid":
-        return run
-    payment = {"mock": True, "asset": body.asset, "amount": run["cost"]["total"],
-               "tx_hash": "0x" + secrets.token_hex(32), "paid_at": datetime.now(timezone.utc).isoformat()}
-    results = await compute_results(run)
+        return await read_run(run_id)
+    payment = await get_payment_adapter().charge(run, body.asset)
+    results = await compute_results(run, requester_key(request, run.get("client_id")))
     await db.runs.update_one({"id": run_id, "status": "pending_payment"},
                              {"$set": {"status": "paid", "payment": payment, "results": results}})
     return await read_run(run_id)
 
 
 @api.post("/runs/{run_id}/kit")
-async def launch_kit(run_id: str):
+async def launch_kit(run_id: str, request: Request):
     run = await get_run(run_id)
     if run["status"] != "paid":
         raise HTTPException(402, "Run is not paid yet")
     if run.get("kit"):
         return {**run["kit"], "demo": run["results"].get("demo", True)}
     res = run["results"]
-    kit = await call_model("launch_kit", {
+    kit, source = await call_model("launch_kit", {
         "product_or_niche": run["description"], "mode": run["mode"], "role": run.get("role"),
-        "audience": run["audience"], "hot_keywords": res["keywords"],
-        "best_sources": [{"source": r["name"], "interest": r["label"]} for r in res["sources"]]})
-    kit = {**(kit or FALLBACKS["launch_kit"]), "source": "ai" if kit else "sample", "keywords": res["keywords"]}
+        "audience": {"name": run["audience"]["name"], "description": run["audience"]["description"]},
+        "hot_keywords": res["keywords"],
+        "best_sources": [{"source": r["name"], "interest": r["label"], "sample_size": r["sample_size"]} for r in res["sources"]]},
+        requester_key(request, run.get("client_id")))
+    kit = {**(kit or FALLBACKS["launch_kit"]), "source": source if kit else "sample", "keywords": res["keywords"]}
     await db.runs.update_one({"id": run_id, "kit": None}, {"$set": {"kit": kit}})
     return {**(await get_run(run_id))["kit"], "demo": res.get("demo", True)}
 
@@ -333,11 +409,11 @@ async def share_status(run_id: str, client_id: Optional[str] = None, acct: Optio
 
 
 @api.post("/runs/{run_id}/share")
-async def create_share(run_id: str, body: ClaimIn, acct: Optional[dict] = Depends(optional_account)):
+async def create_share(run_id: str, body: ClaimIn, request: Request, acct: Optional[dict] = Depends(optional_account)):
     run = await owned_paid_run(run_id, acct, body.client_id)
     if run.get("share_token"):
         return {"token": run["share_token"]}
-    await launch_kit(run_id)
+    await launch_kit(run_id, request)
     token = secrets.token_urlsafe(18)
     await db.runs.update_one({"id": run_id, "share_token": None}, {"$set": {"share_token": token}})
     return {"token": (await get_run(run_id))["share_token"]}
@@ -368,6 +444,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 
 @app.on_event("startup")
 async def start_index_build():
+    init_model_layer(db)
+    get_payment_adapter()  # fail fast on an unsupported PAYMENT_MODE
     app.state.index_task = asyncio.create_task(ensure_indexes())
 
 

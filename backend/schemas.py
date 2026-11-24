@@ -13,19 +13,15 @@ class AudienceOptions(BaseModel):
     options: List[AudienceOption] = Field(min_length=3, max_length=3)
 
 
-class KeywordPick(BaseModel):
-    keywords: List[str] = Field(min_length=1, max_length=12)
-
-
-class CreatorItem(BaseModel):
+class ResearcherItem(BaseModel):
     platform: Literal["x", "telegram", "reddit", "youtube"]
     community: str = Field(min_length=2, max_length=80)
     reason: str = Field(min_length=5, max_length=200)
-    format: str = Field(min_length=2, max_length=80)
+    show_up: str = Field(min_length=2, max_length=140)
 
 
-class CreatorRanking(BaseModel):
-    items: List[CreatorItem] = Field(min_length=2, max_length=8)
+class ResearcherRanking(BaseModel):
+    items: List[ResearcherItem] = Field(min_length=2, max_length=8)
 
 
 class ScriptBeat(BaseModel):
@@ -43,7 +39,6 @@ class LaunchKit(BaseModel):
 
 TASK_SCHEMAS = {
     "audience_options": AudienceOptions,
-    "keyword_extraction": KeywordPick,
-    "creator_ranking": CreatorRanking,
+    "researcher_ranking": ResearcherRanking,
     "launch_kit": LaunchKit,
 }

@@ -6,6 +6,8 @@ export const INITIAL_FLOW = {
   description: "",
   mode: "launch",
   role: "Video creator",
+  roleOther: "",
+  xPosts: 50,
   audience: null,
   options: [],
   optionsSource: null,
@@ -17,7 +19,8 @@ export const INITIAL_FLOW = {
 export function FlowProvider({ children }) {
   const [flow, setFlow] = useState(() => {
     try {
-      return { ...INITIAL_FLOW, ...JSON.parse(sessionStorage.getItem(KEY) || "{}") };
+      const saved = { ...INITIAL_FLOW, ...JSON.parse(sessionStorage.getItem(KEY) || "{}") };
+      return saved.mode === "creator" ? { ...saved, mode: "researcher" } : saved;
     } catch {
       return INITIAL_FLOW;
     }

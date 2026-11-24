@@ -44,8 +44,20 @@ export const DemoBadge = ({ demo = true }) => demo ? (
   </span>
 );
 
-export const SourceTag = ({ live, testid }) => (
-  <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${live ? "border-ink" : "border-line text-soft"}`} data-testid={testid}>
-    {live ? "Live" : "Demo data"}
+export const SourceTag = ({ live, fallback, testid }) => (
+  <span className="inline-flex flex-wrap items-center gap-2">
+    <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${live ? "border-ink" : "border-line text-soft"}`} data-testid={testid}>
+      {live ? "Live data" : "Demo data"}
+    </span>
+    {fallback && <span className="text-xs font-normal text-soft" title={fallback} data-testid={testid && `${testid}-fallback`}>Showing sample result</span>}
+  </span>
+);
+
+export const AiSourceTag = ({ source, testid }) => (
+  <span className="inline-flex flex-wrap items-center gap-2 text-xs" data-testid={testid}>
+    <span className={`rounded-full border px-2 py-0.5 font-semibold uppercase tracking-wider ${source === "ai" ? "border-ink" : "border-line text-soft"}`}>
+      {source === "ai" ? "Live AI" : "Sample"}
+    </span>
+    <span className="text-soft">AI-generated. Check before posting.</span>
   </span>
 );

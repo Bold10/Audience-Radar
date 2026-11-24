@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowRight, Eye, Loader2 } from "lucide-react";
 import { Page } from "@/components/Layout";
-import { DemoBadge } from "@/components/Interest";
+import { AiSourceTag, DemoBadge } from "@/components/Interest";
 import { KitView } from "@/components/KitView";
-import { CreatorList, Keywords, SourceRows } from "@/pages/Results";
-import { api, fmtDate } from "@/lib/api";
+import { ResearcherResults, Keywords, RESEARCHER_TITLE, SourceRows } from "@/pages/Results";
+import { api, fmtDate, isResearcher, modeLabel } from "@/lib/api";
 
 const useNoIndex = () => useEffect(() => {
   const m = document.createElement("meta");
@@ -38,7 +38,7 @@ export default function SharedRun() {
     );
   }
   if (!run) return <Page><Loader2 className="animate-spin" /></Page>;
-  const creator = run.mode === "creator";
+  const researcher = isResearcher(run.mode);
 
   return (
     <>
@@ -48,13 +48,14 @@ export default function SharedRun() {
       <Page testid="shared-run-page">
         <div className="flex flex-wrap items-center gap-3">
           <DemoBadge demo={run.results.demo !== false} />
-          <span className="text-sm text-soft">{creator ? `Creator · ${run.role}` : "Launch mode"} · {run.audience.name} · {fmtDate(run.created_at)}</span>
+          <span className="text-sm text-soft">{researcher ? modeLabel(run) : "Launch mode"} · {run.audience.name} · {fmtDate(run.created_at)}</span>
         </div>
-        <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">{creator ? "Where to publish" : "Audience radar"}</h1>
+        <h1 className="mt-4 font-display text-4xl font-bold sm:text-5xl">{researcher ? RESEARCHER_TITLE : "Audience radar"}</h1>
         <p className="mt-4 max-w-2xl text-base text-soft md:text-lg">For “{run.description}”. Interest labels are estimates from sampled posts, not knowledge of any platform's algorithm.</p>
-        <div className="mt-10">{creator ? <CreatorList items={run.results.creator_ranking} /> : <SourceRows rows={run.results.sources} />}</div>
+        <div className="mt-10">{researcher ? <ResearcherResults run={run} /> : <SourceRows rows={run.results.sources} />}</div>
         <Keywords words={run.results.keywords} />
-        <h2 className="mb-6 mt-16 font-display text-3xl font-bold">Launch kit</h2>
+        <h2 className="mb-3 mt-16 font-display text-3xl font-bold">Launch kit</h2>
+        <div className="mb-6"><AiSourceTag source={run.kit.source} testid="shared-kit-ai-source" /></div>
         <KitView kit={run.kit} />
         <SharedFooter />
       </Page>

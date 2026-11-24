@@ -1,29 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Megaphone, Sparkles, Video } from "lucide-react";
+import { ArrowRight, Megaphone, Search, Sparkles } from "lucide-react";
 import { Page } from "@/components/Layout";
 import { Stepper } from "@/components/Stepper";
 import { useFlow } from "@/lib/flow";
 
-const ROLES = ["Video creator", "Writer", "Designer", "Other"];
+const ROLES = ["Video creator", "Writer", "Marketer", "Sales rep", "Other"];
 const MODES = [
   { id: "launch", label: "I'm launching a product", icon: Megaphone },
-  { id: "creator", label: "I'm a researcher", icon: Video },
+  { id: "researcher", label: "I'm a researcher", icon: Search },
 ];
-const EXAMPLES = { launch: "a portfolio tracker for crypto traders", creator: "crypto trading education" };
+const EXAMPLES = { launch: "a portfolio tracker for crypto traders", researcher: "crypto trading education" };
+const MAX_TEXT = 1000;
 
 export default function Describe() {
   const { flow, update } = useFlow();
   const nav = useNavigate();
   const [mode, setMode] = useState(flow.mode);
-  const [role, setRole] = useState(flow.role);
+  const [role, setRole] = useState(ROLES.includes(flow.role) ? flow.role : "Other");
+  const [roleOther, setRoleOther] = useState(flow.roleOther || "");
   const [text, setText] = useState(flow.description);
   const valid = text.trim().length >= 3;
 
   const submit = (e) => {
     e.preventDefault();
     if (!valid) return;
-    update({ description: text.trim(), mode, role: mode === "creator" ? role : null, audience: null, options: [], seen: [], round: 0 });
+    const finalRole = role === "Other" ? (roleOther.trim() || "Other") : role;
+    update({ description: text.trim().slice(0, MAX_TEXT), mode, role: mode === "researcher" ? finalRole : null, roleOther,
+      audience: null, options: [], seen: [], round: 0 });
     nav("/app/audience");
   };
 
@@ -45,8 +49,8 @@ export default function Describe() {
             ))}
           </div>
         </fieldset>
-        {mode === "creator" && (
-          <fieldset className="fade-up" data-testid="creator-role-selector">
+        {mode === "researcher" && (
+          <fieldset className="fade-up" data-testid="researcher-role-selector">
             <legend className="mb-3 text-sm font-semibold">Your role</legend>
             <div className="flex flex-wrap gap-2" role="radiogroup">
               {ROLES.map((r) => (
@@ -57,20 +61,32 @@ export default function Describe() {
                 </button>
               ))}
             </div>
+            {role === "Other" && (
+              <div className="mt-4 max-w-sm">
+                <label htmlFor="role-other-input" className="mb-2 block text-sm font-semibold">Your role, in a few words</label>
+                <input id="role-other-input" value={roleOther} onChange={(e) => setRoleOther(e.target.value)} maxLength={40}
+                  placeholder="e.g. Podcast host" data-testid="role-other-input"
+                  className="min-h-[44px] w-full rounded-xl border border-line bg-surface px-4 text-base outline-none focus:border-btn" />
+                <p className="mt-1 text-xs text-soft">{roleOther.length}/40 characters</p>
+              </div>
+            )}
           </fieldset>
         )}
         <div>
           <label htmlFor="describe-input" className="mb-3 block text-sm font-semibold">
             {mode === "launch" ? "Describe your product" : "Describe your niche"}
           </label>
-          <textarea id="describe-input" rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={500}
+          <textarea id="describe-input" rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_TEXT}
             placeholder={mode === "launch" ? "e.g. a portfolio tracker for crypto traders" : "e.g. crypto trading education"}
             className="w-full rounded-2xl border border-line bg-surface p-4 text-base outline-none transition-colors focus:border-btn"
-            data-testid="describe-textarea" />
-          <button type="button" onClick={() => { setText(EXAMPLES[mode]); if (mode === "creator") setRole("Video creator"); }}
-            className="mt-2 inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-btn hover:underline" data-testid="use-sample-button">
-            <Sparkles size={15} /> Use the demo example
-          </button>
+            data-testid="describe-textarea" aria-describedby="describe-count" />
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <button type="button" onClick={() => { setText(EXAMPLES[mode]); if (mode === "researcher") setRole("Video creator"); }}
+              className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-btn hover:underline" data-testid="use-sample-button">
+              <Sparkles size={15} /> Use the demo example
+            </button>
+            <span id="describe-count" className="text-xs text-soft" data-testid="describe-char-count">{text.length}/{MAX_TEXT} characters</span>
+          </div>
         </div>
         <button type="submit" className="btn-primary w-full sm:w-auto" disabled={!valid} data-testid="describe-continue-button">
           Find my audience <ArrowRight size={18} />

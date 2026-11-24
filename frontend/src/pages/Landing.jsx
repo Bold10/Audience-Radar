@@ -45,9 +45,9 @@ const VideoSlot = () => (
 );
 
 const STEPS = [
-  ["Describe", "Type your product or niche and pick a mode."],
+  ["Describe", "Type your product or niche and pick Launch or Researcher mode."],
   ["Confirm your audience", "Choose one of three AI-suggested audiences, or refine."],
-  ["Pick sources, see the cost", "Free sources are $0. X is priced per sampled post."],
+  ["Pick sources, see the cost", "Free sources are $0. You choose how many X posts to search."],
   ["Get your radar and kit", "Interest by platform, hot keywords and ready-to-post copy."],
 ];
 
@@ -57,21 +57,22 @@ const FEATURES = [
   [FileText, "Launch kit", "An X post, a Telegram message, a graphic card and a 30-second video script."],
   [Coins, "Pay per run", "No subscription and no account. Pay with crypto for exactly what you sample."],
   [ShieldCheck, "Official APIs only", "Live sources will use official platform APIs. No scraping, no auto-posting."],
-  [Video, "Built for creators too", "Creator mode ranks platforms and communities with the best format for each."],
+  [Video, "Built for researchers too", "Researcher mode ranks the best places to reach your audience, with the best way to show up for your role."],
 ];
 
 const FAQ = [
   ["Is this a guarantee of reach?", "No. Labels are estimates from a sample of recent posts: their volume and median engagement. We never claim to know how any platform's algorithm works."],
-  ["What does demo mode mean?", "Every result uses bundled sample data for “a portfolio tracker for crypto traders”, so you can try the full flow with no keys and no real payment."],
-  ["Why is X paid and the others free?", "X charges for API access per post, so we pass that cost through at a configurable price per post. Telegram, Reddit and YouTube cost $0."],
+  ["What does demo mode mean?", "Without data keys, results use bundled sample data for “a portfolio tracker for crypto traders”, so you can try the full flow with no real payment. Each source is labelled Live data or Demo data."],
+  ["Why is X paid and the others free?", "X charges for API access per post, so you choose how many posts to search (50 or 100) and pay a fixed price per post. Telegram, Reddit and YouTube cost $0."],
+  ["How is AI used?", "Gemini suggests audiences, ranks places in Researcher mode and writes the launch kit. It only sees your description, audience, role, hot keywords and aggregate numbers, never post text. Every AI output is labelled Live AI or Sample; check it before posting."],
   ["Do you post for me?", "No. You copy or download the launch kit and post it yourself."],
-  ["Do I need an account?", "No. Your runs are remembered in this browser under History."],
+  ["Do I need an account?", "No. Your runs are remembered in this browser under History. Signing in with your email keeps them on any device."],
 ];
 
 export default function Landing() {
   const cfg = useConfig();
-  const price = cfg?.pricing.x_price_per_post ?? 0.005;
-  const rows = [["X only, 500 posts", 500], ["X only, 1,000 posts", 1000], ["Telegram + Reddit + YouTube", 0], ["All four sources (500 X posts)", 500]];
+  const price = cfg?.pricing.price_per_post ?? 0.01;
+  const rows = [["X only, 50 posts", 50], ["X only, 100 posts", 100], ["Telegram + Reddit + YouTube", 0], ["All four sources (50 X posts)", 50]];
   return (
     <div data-testid="landing-page">
       <Hero />
@@ -94,10 +95,10 @@ export default function Landing() {
             <h3 className="mt-5 font-display text-2xl font-semibold">I'm launching a product</h3>
             <p className="mt-3 text-soft">See which platforms show the most interest in your product category, the hot keywords to use, and a launch kit to post.</p>
           </div>
-          <div className="card-ar p-8" data-testid="mode-card-creator">
+          <div className="card-ar p-8" data-testid="mode-card-researcher">
             <Video className="text-brand" size={30} />
-            <h3 className="mt-5 font-display text-2xl font-semibold">I'm a creator</h3>
-            <p className="mt-3 text-soft">Video creator, writer, designer or other: get a ranked list of platforms and communities, each with a reason and the best content format.</p>
+            <h3 className="mt-5 font-display text-2xl font-semibold">I'm a researcher</h3>
+            <p className="mt-3 text-soft">Video creator, writer, marketer, sales rep or other: get the best places to reach your audience, each with a reason and the best way to show up for your role.</p>
           </div>
         </div>
       </Section>
@@ -111,7 +112,7 @@ export default function Landing() {
       <Section id="pricing" eyebrow="Pricing" title="Pay per run. Only for what you sample.">
         <div className="grid gap-8 lg:grid-cols-[1fr_1.3fr]">
           <div className="space-y-4 text-soft">
-            <p>X posts cost <strong className="text-ink">${price}</strong> each. Telegram, Reddit and YouTube are free. Your total is shown before you pay, in crypto.</p>
+            <p>X posts cost <strong className="text-ink">${price}</strong> each, and you choose 50 or 100 per run. Telegram, Reddit and YouTube are free. Your total is shown before you pay, in crypto.</p>
             <p>No subscription, no account, no card payments.</p>
           </div>
           <table className="card-ar w-full overflow-hidden text-left text-sm" data-testid="pricing-table">

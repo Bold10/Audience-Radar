@@ -28,3 +28,7 @@ export const useConfig = () =>
   useSWR("/config", (u) => api.get(u).then((r) => r.data), { revalidateOnFocus: false }).data;
 
 export const unitLabel = (n, unit) => `${n.toLocaleString()} ${unit}`;
+
+export const isResearcher = (mode) => mode === "researcher" || mode === "creator";
+export const modeLabel = (run, long = false) =>
+  isResearcher(run.mode) ? `Researcher · ${run.role || "Other"}` : long ? "Launching a product" : "Launch";

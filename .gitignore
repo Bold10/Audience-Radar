@@ -84,3 +84,17 @@ android-sdk/
 # overlay black-box crash/user-report dumps — session data, never history
 **/.emergent/recordings/
 frontend/node_modules/.cache/default-development/0.pack
+
+# Secrets and local environment (never commit real values)
+.env
+*.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Build output and caches
+frontend/build/
+__pycache__/
+*.pyc
+.ruff_cache/

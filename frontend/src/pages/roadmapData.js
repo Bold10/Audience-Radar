@@ -2,12 +2,12 @@ export const ROADMAP = [
   {
     phase: "Now",
     title: "Demo mode",
-    items: ["Full flow on bundled sample data", "Launch and creator modes", "Interest estimates with sample sizes", "Hot keywords from top performers", "Launch kit: X, Telegram, card, video script", "Mock crypto payment and history"],
+    items: ["Full flow on sample data, live X when a key is set", "Launch and Researcher modes", "Interest estimates with sample sizes", "Hot keywords from top performers", "Launch kit: X, Telegram, card, video script", "Mock crypto payment and history"],
   },
   {
     phase: "Next",
     title: "Live data",
-    items: ["Live adapters on official APIs (X, Telegram, Reddit, YouTube)", "Real sample sizes per run", "Real crypto payment", "Threshold tuning on real data"],
+    items: ["Real Solana USDC payment", "LinkedIn as a source (official API)", "Live Telegram, Reddit and YouTube on official APIs", "Threshold tuning on real X data"],
   },
   {
     phase: "Later",

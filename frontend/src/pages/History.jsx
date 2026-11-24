@@ -4,7 +4,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@clerk/react";
 import { Page } from "@/components/Layout";
-import { api, clientId, fmtDate, money } from "@/lib/api";
+import { api, clientId, fmtDate, modeLabel, money } from "@/lib/api";
 
 const RunRow = ({ r }) => (
   <li>
@@ -15,7 +15,7 @@ const RunRow = ({ r }) => (
         <span className="font-display text-lg font-semibold">{r.description}</span>
         <span className="block text-sm text-soft">{r.audience?.name}</span>
       </span>
-      <span className="text-sm font-medium">{r.mode === "launch" ? "Launch" : `Creator · ${r.role}`}</span>
+      <span className="text-sm font-medium">{modeLabel(r)}</span>
       <span className="font-display text-lg font-semibold tabular-nums">
         {money(r.cost?.total)}{r.status !== "paid" && <span className="block text-xs font-normal text-btn">Unpaid</span>}
       </span>
